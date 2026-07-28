@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../supabaseClient';
 
@@ -15,7 +15,7 @@ const BLOCKED_WORDS = [
    "fuck", "whore", "slut", "hoe", "dick", "dicks", "whores", "sluts", 
 ];
 
-export default function Onboarding() {
+function OnboardingContent() {
   const [user, setUser] = useState(null);
   const [username, setUsername] = useState('');
   const [status, setStatus] = useState({ loading: false, error: '', success: '' });
@@ -60,7 +60,6 @@ export default function Onboarding() {
     e.preventDefault();
     setStatus({ loading: true, error: '', success: '' });
 
-    // 1. Username Validation
     if (username.length < 3) {
       return setStatus({ loading: false, error: 'Username must be at least 3 characters.', success: '' });
     }
@@ -69,7 +68,6 @@ export default function Onboarding() {
     }
 
     try {
-      // 2. Save to Profiles Table
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert({ 
@@ -102,8 +100,6 @@ export default function Onboarding() {
       <p style={{ marginBottom: '2rem', opacity: 0.6 }}>Let's get your profile set up.</p>
       
       <form onSubmit={handleCompleteSetup} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        
-        {/* Username Input */}
         <div style={{ padding: '1.5rem', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '20px' }}>
           <p style={{ marginBottom: '0.5rem', opacity: 0.7 }}>Choose a Username</p>
           <input 
@@ -130,5 +126,13 @@ export default function Onboarding() {
         </button>
       </form>
     </div>
+  );
+}
+
+export default function Onboarding() {
+  return (
+    <Suspense fallback={<div style={{ color: '#fff', textAlign: 'center', marginTop: '40vh', fontSize: '1.2rem' }}>Loading...</div>}>
+      <OnboardingContent />
+    </Suspense>
   );
 }

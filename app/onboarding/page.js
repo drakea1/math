@@ -3,7 +3,6 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../supabaseClient';
 
-// Basic profanity filter list - add any words you want to block here
 const BLOCKED_WORDS = [
   "admin", "administrator", "root", "superuser", "sysadmin", "system", "moderator", 
   "mod", "staff", "support", "help", "info", "webmaster", "postmaster", "hostmaster",
@@ -29,23 +28,33 @@ function OnboardingContent() {
       const type = searchParams.get('type');
 
       if (tokenHash && type) {
-        const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+        const { error: verifyError } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
           type: type,
         });
 
         if (verifyError) {
           console.error('Error verifying email:', verifyError.message);
-        } else if (verifyData?.user) {
-          setUser(verifyData.user);
-          setVerifying(false);
-          return;
+        } else {
+          // Force a session refresh to clear any client-side caching delay
+          await supabase.auth.refreshSession();
+          window.history.replaceState({}, document.title, window.location.pathname);
         }
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUser(user);
+      // Small retry loop to ensure the auth state settles instantly
+      let activeUser = null;
+      for (let i = 0; i < 3; i++) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          activeUser = user;
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 300));
+      }
+
+      if (activeUser) {
+        setUser(activeUser);
         setVerifying(false);
       } else {
         router.push('/');

@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../supabaseClient';
 
 // Basic profanity filter list - add any words you want to block here
@@ -19,15 +19,37 @@ export default function Onboarding() {
   const [user, setUser] = useState(null);
   const [username, setUsername] = useState('');
   const [status, setStatus] = useState({ loading: false, error: '', success: '' });
+  const [verifying, setVerifying] = useState(true);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const getUser = async () => {
+    const handleEmailVerificationAndGetUser = async () => {
+      const tokenHash = searchParams.get('token_hash');
+      const type = searchParams.get('type');
+
+      if (tokenHash && type) {
+        const { error: verifyError } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: type,
+        });
+
+        if (verifyError) {
+          console.error('Error verifying email:', verifyError.message);
+        }
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) setUser(user);
+      if (user) {
+        setUser(user);
+        setVerifying(false);
+      } else {
+        router.push('/');
+      }
     };
-    getUser();
-  }, []);
+
+    handleEmailVerificationAndGetUser();
+  }, [searchParams, router]);
 
   const containsProfanity = (text) => {
     const lowerText = text.toLowerCase();
@@ -65,6 +87,14 @@ export default function Onboarding() {
       setStatus({ loading: false, error: error.message, success: '' });
     }
   };
+
+  if (verifying) {
+    return (
+      <div style={{ color: '#fff', textAlign: 'center', marginTop: '40vh', fontSize: '1.2rem' }}>
+        Verifying your account...
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '2rem', minHeight: '100vh', color: 'white', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>

@@ -29,13 +29,17 @@ function OnboardingContent() {
       const type = searchParams.get('type');
 
       if (tokenHash && type) {
-        const { error: verifyError } = await supabase.auth.verifyOtp({
+        const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
           type: type,
         });
 
         if (verifyError) {
           console.error('Error verifying email:', verifyError.message);
+        } else if (verifyData?.user) {
+          setUser(verifyData.user);
+          setVerifying(false);
+          return;
         }
       }
 

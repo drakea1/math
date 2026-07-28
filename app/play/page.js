@@ -277,7 +277,7 @@ function PlayContent() {
   // --- UI RENDER: END SCREEN ---
   if (finished) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '2rem', backgroundColor: 'var(--accent-glow)', color: '#fff' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '2rem', backgroundColor: 'var(--accent-glow)', color: '#fff' }}>
         <div style={{ padding: '3rem 2rem', background: 'rgba(255, 255, 255, 0.02)', border: '2px solid var(--text-main)', borderRadius: '32px', textAlign: 'center', maxWidth: '400px', width: '100%', backdropFilter: 'blur(10px)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
           <div style={{ fontSize: '5rem', marginBottom: '1rem' }}>🏆</div>
           <h1 style={{ fontSize: '3rem', fontWeight: '900', color: 'var(--accent-neon)', textShadow: '0 0 20px var(--accent-neon-glow)', margin: '0 0 0.5rem 0' }}>+{score} XP</h1>
@@ -294,14 +294,14 @@ function PlayContent() {
   }
 
   if (!currentQuestion) {
-    return <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', color: '#fff', backgroundColor: 'var(--accent-glow)', fontSize: '1.2rem', fontWeight: '700', letterSpacing: '2px' }}>INITIALIZING PROTOCOL...</div>;
+    return <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', color: '#fff', backgroundColor: 'var(--accent-glow)', fontSize: '1.2rem', fontWeight: '700', letterSpacing: '2px' }}>INITIALIZING PROTOCOL...</div>;
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', padding: '2rem 1.5rem', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'var(--accent-glow)', color: '#fff', position: 'relative' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', padding: '2rem 1.5rem 6rem 1.5rem', alignItems: 'center', justifyContent: 'flex-start', backgroundColor: 'var(--accent-glow)', color: '#fff', position: 'relative', overflowY: 'auto', boxSizing: 'border-box' }}>
       
       {/* TOP CONTROLS HUD */}
-      <div style={{ width: '100%', maxWidth: '540px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 10 }}>
+      <div style={{ width: '100%', maxWidth: '540px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 10, flexShrink: 0 }}>
         <button 
           onClick={() => setShowAbortModal(true)}
           style={{
@@ -334,10 +334,10 @@ function PlayContent() {
       </div>
 
       {/* CENTER WORKSPACE FRAME */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, width: '100%', maxWidth: '540px', margin: '1.5rem 0' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', width: '100%', maxWidth: '540px', margin: '1.5rem 0', flex: '1 0 auto' }}>
         
         {/* PROGRESS MATRIX BAR */}
-        <div style={{ width: '100%', height: '6px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '10px', marginBottom: '3.5rem', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.02)' }}>
+        <div style={{ width: '100%', height: '6px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '10px', marginBottom: '3.5rem', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.02)', flexShrink: 0 }}>
           <div style={{ width: `${progressPercent}%`, height: '100%', background: 'linear-gradient(90deg, #00ffcc, var(--accent-neon))', boxShadow: '0 0 10px var(--accent-neon-glow)', transition: 'width 0.4s ease' }} />
         </div>
 
@@ -368,7 +368,7 @@ function PlayContent() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.2rem', width: '100%' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.2rem', width: '100%', marginBottom: '2rem' }}>
               {currentQuestion.choices.map((choice, i) => {
                 let btnBorder = 'var(--text-main)';
                 let btnBg = 'rgba(255, 255, 255, 0.02)';
@@ -423,7 +423,7 @@ function PlayContent() {
 
         {/* QUESTION FORMAT 2: MATCHING CARDS MINI-GAME */}
         {currentQuestion.type === 'matching' && (
-          <div style={{ width: '100%' }}>
+          <div style={{ width: '100%', marginBottom: '2rem' }}>
             <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
               <h3 style={{ fontSize: '1.2rem', fontWeight: '800', margin: '0 0 0.3rem 0', color: 'var(--accent-neon)' }}>MATCHING MATRIX</h3>
               <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', margin: 0 }}>Strikes: {matchingStrikes}/3 (Max 2 penalties before 0 XP)</p>
@@ -539,7 +539,7 @@ function PlayContent() {
 
         {/* QUESTION FORMAT 3: FILL-IN-THE-BLANK */}
         {currentQuestion.type === 'fill-in-the-blank' && (
-          <div style={{ width: '100%' }}>
+          <div style={{ width: '100%', marginBottom: '2rem' }}>
             <div style={{ 
               background: 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.005))',
               border: '1px solid var(--text-main)',
@@ -627,7 +627,7 @@ function PlayContent() {
       </div>
 
       {/* BOTTOM FEEDBACK INTERACTION HUD */}
-      <div style={{ width: '100%', maxWidth: '540px', minHeight: '110px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: '100%', maxWidth: '540px', minHeight: '110px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         {hasAnswered && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', animation: 'fadeIn 0.2s ease-out' }}>
             
@@ -740,7 +740,7 @@ function PlayContent() {
 
 export default function PlayPage() {
   return (
-    <Suspense fallback={<div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', color: '#fff', backgroundColor: 'var(--accent-glow)', fontSize: '1.2rem', fontWeight: '700', letterSpacing: '2px' }}>LOADING MATRIX...</div>}>
+    <Suspense fallback={<div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', color: '#fff', backgroundColor: 'var(--accent-glow)', fontSize: '1.2rem', fontWeight: '700', letterSpacing: '2px' }}>LOADING MATRIX...</div>}>
       <PlayContent />
     </Suspense>
   );

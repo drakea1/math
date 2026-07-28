@@ -80,13 +80,24 @@ export default function Home() {
           <strong style={{ color: '#fff' }}>{email}</strong>. <br />
           Please check your inbox to activate your account.
         </p>
-        <button className="btn-signin" style={{ marginTop: '3rem' }} onClick={() => setIsVerificationSent(false)}>
+        <button 
+          className="btn-signin" 
+          style={{ marginTop: '3rem' }} 
+          onClick={() => {
+            setIsVerificationSent(false);
+            setIsSignUp(false);
+            setEmail('');
+            setPassword('');
+            setConfirmPassword('');
+            setErrorMessage('');
+          }}
+        >
           Back to Login
         </button>
       </div>
     );
   }
-
+  
   return (
    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '9rem  1.5rem', justifyContent: 'flex-start' }}>
 

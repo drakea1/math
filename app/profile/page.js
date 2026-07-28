@@ -20,10 +20,21 @@ export default function Profile() {
   const router = useRouter();
 
   useEffect(() => {
+    // If AuthContext hasn't finished loading user yet, don't kick them out immediately
+    if (user === undefined) return;
+
     if (!user) {
-      router.push('/');
+      // Give a tiny grace period or check session directly before redirecting to avoid false logouts from caching lag
+      const checkSession = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          router.push('/');
+        }
+      };
+      checkSession();
       return;
     }
+
     if (profile) {
       setProfileData(profile);
       setNewUsername(profile.username || '');
@@ -82,12 +93,12 @@ export default function Profile() {
 
     // Sign out and redirect home
     await supabase.auth.signOut();
-    router.push('/');
+    window.location.href = '/';
   };
   
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push('/');
+    window.location.href = '/';
   };
 
   return (

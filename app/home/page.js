@@ -38,7 +38,7 @@ export default function HomeDashboard() {
     { id: 'division', title: 'Division', subtitle: 'Splitting Paths', icon: '➗', unlocked: true },
     { id: 'pre-algebra ', title: 'Pre-Algebra', subtitle: 'Bridging the Gap', icon: '🔢', unlocked: true },
     { id: 'algebra', title: 'Algebra', subtitle: 'Finding the Unknown', icon: '✖️', unlocked: true },
-    { id: 'algebra 2', title: 'Algebra 2', subtitle: 'Power and Functions', icon: '📈', unlocked: true },
+    { id: 'algebra2', title: 'Algebra 2', subtitle: 'Power and Functions', icon: '📈', unlocked: true },
     { id: 'geometry', title: 'Geometry', subtitle: 'Shapes and Spaces', icon: '📐', unlocked: true },
     { id: 'pre-calc', title: 'Pre-Calc', subtitle: 'The Horizon', icon: '🔄', unlocked: true },
     { id: 'statistics', title: 'Statistics', subtitle: 'Data and Odds', icon: '📊', unlocked: true },

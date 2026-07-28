@@ -42,8 +42,12 @@ export default function Home() {
         if (error) {
           setErrorMessage(error.message);
         } else {
-          // 2. THE MAGIC DOOR: Send new sign-ups to the onboarding screen!
-          router.push('/onboarding');
+          // Check if session exists; if email confirmation is required, session will be null and we show verification screen
+          if (data?.session) {
+            router.push('/onboarding');
+          } else {
+            setIsVerificationSent(true);
+          }
         }
       } else {
         setErrorMessage('Please ensure all password requirements are met.');
@@ -89,11 +93,11 @@ export default function Home() {
     {/* --- VISUAL HEADER START --- */}
     <header style={{
       position: 'fixed',      
-      top: 0,                
+      top: 0,                 
       left: 0,                
       width: '100%',          
       backgroundColor: 'var(--accent-glow)',
-      zIndex: 1000,          
+      zIndex: 1000,           
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'flex-start',

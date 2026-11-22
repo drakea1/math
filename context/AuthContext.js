@@ -26,26 +26,33 @@ export function AuthProvider({ children }) {
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     // 1. Check initial session on load
     async function initAuth() {
       const { data: { session } } = await supabase.auth.getSession();
+      if (!isMounted) return;
+
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       await fetchUserData(currentUser);
-      setLoading(false);
+      if (isMounted) setLoading(false);
     }
 
     initAuth();
 
-    // 2. Listen for real-time auth changes (Sign in, Sign out, etc.)
+    // 2. Listen for real-time auth changes (Sign in, Sign out, token refresh, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      await fetchUserData(currentUser);
-      setLoading(false);
+      if (!isMounted) return;
+
+      const nextUser = session?.user ?? null;
+      setUser(nextUser);
+      await fetchUserData(nextUser);
+      if (isMounted) setLoading(false);
     });
 
     return () => {
+      isMounted = false;
       subscription?.unsubscribe();
     };
   }, []);

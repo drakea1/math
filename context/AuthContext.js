@@ -10,29 +10,48 @@ export function AuthProvider({ children }) {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchUserData = async (currentUser) => {
+    if (currentUser) {
+      const [profileRes, leaderboardRes] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', currentUser.id).single(),
+        supabase.from('profiles').select('username, xp').order('xp', { ascending: false }).limit(10)
+      ]);
+
+      if (profileRes.data) setProfile(profileRes.data);
+      if (leaderboardRes.data) setLeaderboard(leaderboardRes.data);
+    } else {
+      setProfile(null);
+      setLeaderboard([]);
+    }
+  };
+
   useEffect(() => {
-    async function loadUserData() {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-
-      if (user) {
-        // Fetch profile and leaderboard concurrently in the background
-        const [profileRes, leaderboardRes] = await Promise.all([
-          supabase.from('profiles').select('*').eq('id', user.id).single(),
-          supabase.from('profiles').select('username, xp').order('xp', { ascending: false }).limit(10)
-        ]);
-
-        if (profileRes.data) setProfile(profileRes.data);
-        if (leaderboardRes.data) setLeaderboard(leaderboardRes.data);
-      }
+    // 1. Check initial session on load
+    async function initAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      await fetchUserData(currentUser);
       setLoading(false);
     }
 
-    loadUserData();
+    initAuth();
+
+    // 2. Listen for real-time auth changes (Sign in, Sign out, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      await fetchUserData(currentUser);
+      setLoading(false);
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, profile, leaderboard, loading, setProfile }}>
+    <AuthContext.Provider value={{ user, profile, leaderboard, loading, setProfile, refreshUserData: fetchUserData }}>
       {children}
     </AuthContext.Provider>
   );

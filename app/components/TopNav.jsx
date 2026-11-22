@@ -5,13 +5,21 @@ import { usePathname } from 'next/navigation';
 export default function TopNav() {
   const pathname = usePathname();
 
-  // Hide the top nav bar on the login/signup screen if desired
-  if (pathname === '/') return null;
+  // Hide the top nav bar on login/signup, forgot-password, and reset-password pages
+  if (
+    pathname === '/' || 
+    pathname.includes('forgot-password') || 
+    pathname.includes('reset-password')
+  ) {
+    return null;
+  }
 
   const navItems = [
-    { name: 'Command', path: '/home' },
-    { name: 'Ranks', path: '/leaderboard' },
+    { name: 'Home', path: '/home' },
+    { name: 'Leaderboard', path: '/leaderboard' },
     { name: 'Learn', path: '/learn' },
+    { name: 'Subscription', path: '/subscription' },
+    { name: 'Helper' , path: '/helper'},
     { name: 'Profile', path: '/profile' },
   ];
 

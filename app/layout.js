@@ -8,7 +8,33 @@ import { ThemeProvider } from '../context/ThemeContext';
 
 export const metadata = {
   title: 'MathAround',
-  description: 'Gamified Command Center',
+  description: 'Come MathAround',
+  icons: {
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/logo.png',
+  },
+  openGraph: {
+    title: 'MathAround',
+    description: 'Come MathAround',
+    url: 'https://www.matharoundapp.com',
+    siteName: 'MathAround',
+    images: [
+      {
+        url: 'https://www.matharoundapp.com/logo.png',
+        width: 1024,
+        height: 1024,
+        alt: 'MathAround Logo',
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'MathAround',
+    description: 'Come MathAround',
+    images: ['https://www.matharoundapp.com/logo.png'],
+  },
 };
 
 const spaceFont = Space_Grotesk({

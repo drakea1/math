@@ -1,8 +1,9 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../supabaseClient';
+import { useAuth } from '../context/AuthContext';
 
 // List of restricted/inappropriate words to block
 const profanityList = [
@@ -51,6 +52,7 @@ const validateUsername = (rawUsername) => {
 
 export default function Home() {
   const router = useRouter();
+  const { user, loading } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -61,6 +63,17 @@ export default function Home() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isVerificationSent, setIsVerificationSent] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    if (loading) return;
+    if (user) {
+      router.replace('/home');
+    }
+  }, [user, loading, router]);
+
+  if (loading || user) {
+    return null;
+  }
 
   // Password requirements validation rules
   const hasMinLength = password.length >= 8;

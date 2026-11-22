@@ -640,18 +640,24 @@ export default function Profile() {
             {/* LEGAL */}
             <div style={{ padding: '1.5rem', background: 'var(--card-bg)', border: '1px solid var(--surface-border)', borderRadius: '20px', display: 'block', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
               <p style={{ marginBottom: '0.8rem', fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '700', letterSpacing: '0.05em' }}>LEGAL</p>
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <button
                   onClick={() => router.push('/terms-and-conditions')}
-                  style={{ flex: 1, padding: '0.9rem', background: 'transparent', border: '1px solid var(--surface-border)', borderRadius: '12px', color: 'var(--text-main)', cursor: 'pointer', fontWeight: '700' }}
+                  style={{ flex: '1 1 160px', padding: '0.9rem', background: 'transparent', border: '1px solid var(--surface-border)', borderRadius: '12px', color: 'var(--text-main)', cursor: 'pointer', fontWeight: '700' }}
                 >
                   Terms and Conditions
                 </button>
                 <button
                   onClick={() => router.push('/privacy')}
-                  style={{ flex: 1, padding: '0.9rem', background: 'transparent', border: '1px solid var(--surface-border)', borderRadius: '12px', color: 'var(--text-main)', cursor: 'pointer', fontWeight: '700' }}
+                  style={{ flex: '1 1 160px', padding: '0.9rem', background: 'transparent', border: '1px solid var(--surface-border)', borderRadius: '12px', color: 'var(--text-main)', cursor: 'pointer', fontWeight: '700' }}
                 >
                   Privacy Policy
+                </button>
+                <button
+                  onClick={() => router.push('/refund-policy')}
+                  style={{ flex: '1 1 160px', padding: '0.9rem', background: 'transparent', border: '1px solid var(--surface-border)', borderRadius: '12px', color: 'var(--text-main)', cursor: 'pointer', fontWeight: '700' }}
+                >
+                  Refund Policy
                 </button>
               </div>
             </div>

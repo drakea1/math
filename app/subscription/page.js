@@ -475,18 +475,25 @@ export default function SubscriptionPage() {
                 >
                   Renews monthly at $8.99 + applicable taxes via Paddle until canceled. By upgrading, you agree to our{" "}
                   <Link
-                    href="/terms-and-conditions"
-                    style={{ color: "var(--text-main)", fontWeight: "600", textDecoration: "underline" }}
-                  >
-                    Terms and Conditions
-                  </Link>{" "}
-                  and{" "}
-                  <Link
-                    href="/privacy"
-                    style={{ color: "var(--text-main)", fontWeight: "600", textDecoration: "underline" }}
-                  >
-                    Privacy Policy
-                  </Link>
+  href="/terms-and-conditions"
+  style={{ color: "var(--text-main)", fontWeight: "600", textDecoration: "underline" }}
+>
+  Terms and Conditions
+</Link>
+,{" "}
+<Link
+  href="/privacy"
+  style={{ color: "var(--text-main)", fontWeight: "600", textDecoration: "underline" }}
+>
+  Privacy Policy
+</Link>
+, and{" "}
+<Link
+  href="/refund-policy"
+  style={{ color: "var(--text-main)", fontWeight: "600", textDecoration: "underline" }}
+>
+  Refund Policy
+</Link>
                   .
                 </p>
               </div>

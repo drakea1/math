@@ -71,6 +71,7 @@ export default function RootLayout({ children }) {
 
               {/* 2. MAIN CONTENT AREA */}
               <div
+                className="main-content-area"
                 style={{
                   flex: 1,
                   minHeight: 0,
@@ -78,7 +79,6 @@ export default function RootLayout({ children }) {
                   overflowX: 'clip',
                   display: 'flex',
                   flexDirection: 'column',
-                  paddingBottom: '5.5rem',
                 }}
               >
                 {children}

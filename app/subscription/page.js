@@ -156,15 +156,16 @@ export default function SubscriptionPage() {
     <>
       <div
         style={{
-          maxWidth: "900px",
-          margin: "40px auto",
-          padding: "0 20px",
+          maxWidth: "1060px",
+          margin: "48px auto",
+          padding: "0 24px 32px",
           fontFamily: "inherit",
           color: "var(--text-main)",
+          boxSizing: "border-box",
         }}
       >
         {/* Header section */}
-        <div style={{ textAlign: "center", marginBottom: "40px" }}>
+        <div style={{ textAlign: "center", marginBottom: "44px" }}>
           <span
             style={{
               color: "#16a34a",
@@ -178,16 +179,16 @@ export default function SubscriptionPage() {
           </span>
           <h1
             style={{
-              fontSize: "32px",
+              fontSize: "clamp(28px, 4vw, 36px)",
               fontWeight: "800",
-              marginTop: "4px",
-              marginBottom: "8px",
+              marginTop: "6px",
+              marginBottom: "10px",
               color: "var(--text-main)",
             }}
           >
             Unlock the Full Power of MathAround
           </h1>
-          <p style={{ color: "var(--text-muted)", fontSize: "15px", maxWidth: "500px", margin: "0 auto" }}>
+          <p style={{ color: "var(--text-muted)", fontSize: "15px", maxWidth: "540px", margin: "0 auto", lineHeight: "1.5" }}>
             Compare plans and choose the experience that fits your learning pace.
           </p>
         </div>
@@ -196,8 +197,8 @@ export default function SubscriptionPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: "24px",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 380px), 1fr))",
+            gap: "28px",
             alignItems: "stretch",
           }}
         >
@@ -206,12 +207,13 @@ export default function SubscriptionPage() {
             style={{
               background: "var(--card-bg)",
               border: "2px solid var(--surface-border)",
-              borderRadius: "20px",
-              padding: "32px",
+              borderRadius: "24px",
+              padding: "36px",
               boxShadow: "0 4px 20px rgba(0, 0, 0, 0.04)",
               display: "flex",
               flexDirection: "column",
               justifyContent: "space-between",
+              boxSizing: "border-box",
             }}
           >
             <div>
@@ -220,35 +222,37 @@ export default function SubscriptionPage() {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "baseline",
-                  marginBottom: "20px",
+                  gap: "12px",
+                  marginBottom: "24px",
                 }}
               >
-                <h2 style={{ fontSize: "18px", fontWeight: "700", margin: 0, color: "var(--text-main)" }}>
+                <h2 style={{ fontSize: "20px", fontWeight: "700", margin: 0, color: "var(--text-main)" }}>
                   Free Plan
                 </h2>
-                <span style={{ fontSize: "22px", fontWeight: "800", color: "var(--text-main)" }}>$0</span>
+                <span style={{ fontSize: "24px", fontWeight: "800", color: "var(--text-main)", whiteSpace: "nowrap" }}>$0</span>
               </div>
 
               <div
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  gap: "12px",
-                  marginBottom: "32px",
-                  fontSize: "14px",
+                  gap: "14px",
+                  marginBottom: "36px",
+                  fontSize: "14.5px",
+                  lineHeight: "1.5",
                   color: "var(--text-muted)",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <span style={{ color: "#16a34a", fontWeight: "bold" }}>✓</span>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+                  <span style={{ color: "#16a34a", fontWeight: "bold", flexShrink: 0 }}>✓</span>
                   <span>10-level daily limit</span>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <span style={{ color: "#16a34a", fontWeight: "bold" }}>✓</span>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+                  <span style={{ color: "#16a34a", fontWeight: "bold", flexShrink: 0 }}>✓</span>
                   <span>Levels renew every 2 hours</span>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <span style={{ color: "#16a34a", fontWeight: "bold" }}>✓</span>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+                  <span style={{ color: "#16a34a", fontWeight: "bold", flexShrink: 0 }}>✓</span>
                   <span>Access to core math practice boards</span>
                 </div>
               </div>
@@ -261,10 +265,11 @@ export default function SubscriptionPage() {
                   backgroundColor: isDarkMode ? "#171717" : "#f1f5f9",
                   color: "var(--text-muted)",
                   fontWeight: "600",
-                  padding: "14px",
+                  padding: "14px 18px",
                   borderRadius: "14px",
                   textAlign: "center",
                   fontSize: "14px",
+                  boxSizing: "border-box",
                 }}
               >
                 Current Plan
@@ -277,13 +282,14 @@ export default function SubscriptionPage() {
             style={{
               background: "var(--card-bg)",
               border: "2px solid #16a34a",
-              borderRadius: "20px",
-              padding: "32px",
+              borderRadius: "24px",
+              padding: "36px",
               boxShadow: "0 10px 25px -5px rgba(22, 163, 74, 0.15)",
               display: "flex",
               flexDirection: "column",
               justifyContent: "space-between",
               position: "relative",
+              boxSizing: "border-box",
             }}
           >
             <div
@@ -295,7 +301,7 @@ export default function SubscriptionPage() {
                 color: "#ffffff",
                 fontSize: "11px",
                 fontWeight: "800",
-                padding: "4px 10px",
+                padding: "4px 12px",
                 borderRadius: "20px",
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
@@ -310,15 +316,24 @@ export default function SubscriptionPage() {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "baseline",
-                  marginBottom: "20px",
+                  gap: "12px",
+                  marginBottom: "24px",
                 }}
               >
-                <h2 style={{ fontSize: "18px", fontWeight: "700", margin: 0, color: "var(--text-main)" }}>
+                <h2
+                  style={{
+                    fontSize: "20px",
+                    fontWeight: "700",
+                    margin: 0,
+                    color: "var(--text-main)",
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   MathAround Pro
                 </h2>
-                <div>
+                <div style={{ whiteSpace: "nowrap", flexShrink: 0 }}>
                   <span style={{ fontSize: "26px", fontWeight: "900", color: "var(--text-main)" }}>$8.99</span>
-                  <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>/mo</span>
+                  <span style={{ fontSize: "12.5px", color: "var(--text-muted)" }}>/mo</span>
                 </div>
               </div>
 
@@ -326,28 +341,29 @@ export default function SubscriptionPage() {
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  gap: "12px",
-                  marginBottom: "32px",
-                  fontSize: "14px",
+                  gap: "14px",
+                  marginBottom: "36px",
+                  fontSize: "14.5px",
+                  lineHeight: "1.5",
                   color: "var(--text-muted)",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <span style={{ color: "#16a34a", fontWeight: "bold" }}>✓</span>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+                  <span style={{ color: "#16a34a", fontWeight: "bold", flexShrink: 0 }}>✓</span>
                   <span style={{ color: "var(--text-main)" }}>
                     <strong>Unlimited</strong> levels (no daily limits)
                   </span>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <span style={{ color: "#16a34a", fontWeight: "bold" }}>✓</span>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+                  <span style={{ color: "#16a34a", fontWeight: "bold", flexShrink: 0 }}>✓</span>
                   <span>No 2-hour timer wait periods</span>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <span style={{ color: "#16a34a", fontWeight: "bold" }}>✓</span>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+                  <span style={{ color: "#16a34a", fontWeight: "bold", flexShrink: 0 }}>✓</span>
                   <span>Full access across all 11 math subjects</span>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <span style={{ color: "#16a34a", fontWeight: "bold" }}>✓</span>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+                  <span style={{ color: "#16a34a", fontWeight: "bold", flexShrink: 0 }}>✓</span>
                   <span>Dedicated AI math helper for breakdowns, with a limit of 100 daily chat requests</span>
                 </div>
               </div>
@@ -355,45 +371,45 @@ export default function SubscriptionPage() {
 
             {/* Action */}
             {isPro ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                 <div
                   style={{
                     width: "100%",
                     backgroundColor: isDarkMode ? "rgba(22, 163, 74, 0.15)" : "#f0fdf4",
                     border: "1px solid #16a34a",
                     color: "#16a34a",
-                    padding: "16px",
-                    borderRadius: "14px",
-                    fontSize: "13px",
+                    padding: "18px 20px",
+                    borderRadius: "16px",
+                    fontSize: "13.5px",
                     display: "flex",
                     flexDirection: "column",
-                    gap: "8px",
+                    gap: "10px",
                     boxSizing: "border-box",
                   }}
                 >
-                  <div style={{ fontWeight: "700", textAlign: "center", marginBottom: "2px" }}>
+                  <div style={{ fontWeight: "700", textAlign: "center", fontSize: "14px", marginBottom: "2px" }}>
                     Active Pro Member 🎉
                   </div>
 
                   {subscriptionStartedAt && (
-                    <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-muted)" }}>
-                      <span>Member since:</span>
-                      <strong style={{ color: "var(--text-main)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px", color: "var(--text-muted)" }}>
+                      <span style={{ flexShrink: 0 }}>Member since:</span>
+                      <strong style={{ color: "var(--text-main)", textAlign: "right" }}>
                         {new Date(subscriptionStartedAt).toLocaleDateString()}
                       </strong>
                     </div>
                   )}
 
-                  <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-muted)" }}>
-                    <span>Renewal Status:</span>
-                    <strong style={{ color: autoRenew && !cancelAt ? "#16a34a" : "#f59e0b" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px", color: "var(--text-muted)" }}>
+                    <span style={{ flexShrink: 0 }}>Renewal Status:</span>
+                    <strong style={{ color: autoRenew && !cancelAt ? "#16a34a" : "#f59e0b", textAlign: "right" }}>
                       {autoRenew && !cancelAt ? "Auto-renewing 🔄" : "Cancelling at period end ⏳"}
                     </strong>
                   </div>
 
-                  <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-muted)" }}>
-                    <span>{cancelAt ? "Access ends:" : "Next billing date:"}</span>
-                    <strong style={{ color: "var(--text-main)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px", color: "var(--text-muted)" }}>
+                    <span style={{ flexShrink: 0 }}>{cancelAt ? "Access ends:" : "Next billing date:"}</span>
+                    <strong style={{ color: "var(--text-main)", textAlign: "right" }}>
                       {cancelAt ? new Date(cancelAt).toLocaleDateString() : "Active monthly"}
                     </strong>
                   </div>
@@ -403,17 +419,19 @@ export default function SubscriptionPage() {
                       style={{
                         display: "flex",
                         justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: "16px",
                         color: "var(--text-muted)",
-                        paddingTop: "6px",
+                        paddingTop: "8px",
                         borderTop: "1px solid var(--surface-border)",
                       }}
                     >
-                      <span>Latest Invoice:</span>
+                      <span style={{ flexShrink: 0 }}>Latest Invoice:</span>
                       <a
                         href={invoiceUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        style={{ color: "#2563eb", fontWeight: "600", textDecoration: "underline" }}
+                        style={{ color: "#2563eb", fontWeight: "600", textDecoration: "underline", textAlign: "right" }}
                       >
                         Download PDF
                       </a>
@@ -431,12 +449,13 @@ export default function SubscriptionPage() {
                       border: "2px solid var(--surface-border)",
                       color: "var(--text-main)",
                       fontWeight: "600",
-                      padding: "12px",
+                      padding: "13px 16px",
                       borderRadius: "14px",
                       cursor: "pointer",
-                      fontSize: "13px",
+                      fontSize: "13.5px",
                       opacity: cancelling ? 0.7 : 1,
                       transition: "all 0.2s ease",
+                      boxSizing: "border-box",
                     }}
                   >
                     {cancelling ? "Processing..." : "Turn off Auto-Renewal"}
@@ -475,25 +494,25 @@ export default function SubscriptionPage() {
                 >
                   Renews monthly at $8.99 + applicable taxes via Paddle until canceled. By upgrading, you agree to our{" "}
                   <Link
-  href="/terms-and-conditions"
-  style={{ color: "var(--text-main)", fontWeight: "600", textDecoration: "underline" }}
->
-  Terms and Conditions
-</Link>
-,{" "}
-<Link
-  href="/privacy"
-  style={{ color: "var(--text-main)", fontWeight: "600", textDecoration: "underline" }}
->
-  Privacy Policy
-</Link>
-, and{" "}
-<Link
-  href="/refund-policy"
-  style={{ color: "var(--text-main)", fontWeight: "600", textDecoration: "underline" }}
->
-  Refund Policy
-</Link>
+                    href="/terms-and-conditions"
+                    style={{ color: "var(--text-main)", fontWeight: "600", textDecoration: "underline" }}
+                  >
+                    Terms and Conditions
+                  </Link>
+                  ,{" "}
+                  <Link
+                    href="/privacy"
+                    style={{ color: "var(--text-main)", fontWeight: "600", textDecoration: "underline" }}
+                  >
+                    Privacy Policy
+                  </Link>
+                  , and{" "}
+                  <Link
+                    href="/refund-policy"
+                    style={{ color: "var(--text-main)", fontWeight: "600", textDecoration: "underline" }}
+                  >
+                    Refund Policy
+                  </Link>
                   .
                 </p>
               </div>

@@ -1,18 +1,22 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
+import { useAuth } from '../../context/AuthContext';
 export default function BottomNav() {
   const pathname = usePathname();
+  const { user, loading } = useAuth();
 
-  // Hide the bottom nav bar on login/signup, forgot-password, and reset-password pages
+  // Hide the bottom nav bar on landing, login/signup, forgot-password, and reset-password pages
   if (
     pathname === '/' ||
+    pathname.startsWith('/login-signup') ||
     pathname.includes('forgot-password') ||
     pathname.includes('reset-password')
   ) {
     return null;
   }
+
+  const isLoggedOut = !loading && !user;
 
   const navItems = [
     {
@@ -71,16 +75,29 @@ export default function BottomNav() {
         </svg>
       ),
     },
-    {
-      name: 'Profile',
-      path: '/profile',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-          <circle cx="12" cy="7" r="4"></circle>
-        </svg>
-      ),
-    },
+    isLoggedOut
+      ? {
+          name: 'Log In',
+          path: '/login-signup',
+          isAuthCTA: true,
+          icon: (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+              <polyline points="10 17 15 12 10 7"></polyline>
+              <line x1="15" y1="12" x2="3" y2="12"></line>
+            </svg>
+          ),
+        }
+      : {
+          name: 'Profile',
+          path: '/profile',
+          icon: (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          ),
+        },
   ];
 
   return (
@@ -104,6 +121,7 @@ export default function BottomNav() {
     >
       {navItems.map((item) => {
         const isActive = pathname.startsWith(item.path);
+        const highlightNeon = isActive || item.isAuthCTA;
 
         return (
           <Link
@@ -129,14 +147,14 @@ export default function BottomNav() {
                 width: '100%',
                 height: '100%',
                 padding: '0.45rem 0.1rem',
-                color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
+                color: highlightNeon ? 'var(--text-main)' : 'var(--text-muted)',
                 transition: 'color 0.2s ease',
               }}
             >
               <span
                 style={{
-                  color: isActive ? 'var(--accent-neon)' : 'inherit',
-                  filter: isActive ? 'drop-shadow(0 0 6px var(--accent-neon-glow))' : 'none',
+                  color: highlightNeon ? 'var(--accent-neon)' : 'inherit',
+                  filter: highlightNeon ? 'drop-shadow(0 0 6px var(--accent-neon-glow))' : 'none',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -156,6 +174,7 @@ export default function BottomNav() {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   maxWidth: '100%',
+                  color: item.isAuthCTA ? 'var(--accent-neon)' : 'inherit',
                 }}
               >
                 {item.name}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "../../supabaseClient";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
@@ -24,6 +24,12 @@ export default function AIHelperPage() {
   // Professional delete confirmation modal state & custom error modal state
   const [chatToDelete, setChatToDelete] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
+
+  const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
 
   useEffect(() => {
     const checkSize = () => {
@@ -178,7 +184,18 @@ export default function AIHelperPage() {
   };
 
   const renderChatList = () => (
-    <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "6px", minWidth: 0 }}>
+    <div
+      style={{
+        flex: 1,
+        minHeight: 0,
+        overflowY: "auto",
+        display: "flex",
+        flexDirection: "column",
+        gap: "6px",
+        minWidth: 0,
+        paddingRight: "2px",
+      }}
+    >
       {chats.length === 0 ? (
         <div style={{ fontSize: "13px", color: "var(--text-muted)", padding: "10px 6px" }}>
           No recent chats yet.
@@ -203,6 +220,7 @@ export default function AIHelperPage() {
               color: "var(--text-main)",
               transition: "background 0.2s",
               minWidth: 0,
+              flexShrink: 0,
             }}
           >
             <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1, minWidth: 0 }}>
@@ -253,6 +271,7 @@ export default function AIHelperPage() {
           lineHeight: "1.55",
           whiteSpace: isUser ? "pre-wrap" : "normal",
           boxSizing: "border-box",
+          flexShrink: 0,
         }}
       >
         {isUser ? (
@@ -277,15 +296,15 @@ export default function AIHelperPage() {
 
   return (
     <div
+      className="helper-shell"
       style={{
         display: "flex",
         flexDirection: isDesktop ? "row" : "column",
-        minHeight: isDesktop ? "calc(100dvh - 75px)" : "calc(100dvh - 120px)",
         width: "100%",
         background: "var(--card-bg)",
         color: "var(--text-main)",
         boxSizing: "border-box",
-        overflowX: "hidden",
+        overflow: "hidden",
       }}
     >
       {/* DESKTOP SIDEBAR: Chat History */}
@@ -293,12 +312,15 @@ export default function AIHelperPage() {
         <div
           style={{
             width: "280px",
+            height: "100%",
             flexShrink: 0,
             borderRight: "2px solid var(--surface-border)",
             display: "flex",
             flexDirection: "column",
             padding: "16px",
             boxSizing: "border-box",
+            minHeight: 0,
+            overflow: "hidden",
           }}
         >
           <button
@@ -315,6 +337,7 @@ export default function AIHelperPage() {
               cursor: isPro ? "pointer" : "not-allowed",
               marginBottom: "16px",
               fontSize: "14px",
+              flexShrink: 0,
             }}
           >
             + New Math Chat
@@ -328,6 +351,7 @@ export default function AIHelperPage() {
               textTransform: "uppercase",
               marginBottom: "8px",
               letterSpacing: "0.05em",
+              flexShrink: 0,
             }}
           >
             Recent Chats
@@ -364,9 +388,11 @@ export default function AIHelperPage() {
               gap: "12px",
               boxSizing: "border-box",
               boxShadow: "8px 0 30px rgba(0, 0, 0, 0.25)",
+              minHeight: 0,
+              overflow: "hidden",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
               <span style={{ fontWeight: "800", fontSize: "1rem", color: "var(--text-main)" }}>
                 Math Helper
               </span>
@@ -406,6 +432,7 @@ export default function AIHelperPage() {
                 cursor: isPro ? "pointer" : "not-allowed",
                 fontSize: "13.5px",
                 textAlign: "left",
+                flexShrink: 0,
               }}
             >
               ✎ New chat
@@ -419,6 +446,7 @@ export default function AIHelperPage() {
                 textTransform: "uppercase",
                 letterSpacing: "0.06em",
                 marginTop: "4px",
+                flexShrink: 0,
               }}
             >
               Recent ({chats.length})
@@ -434,12 +462,14 @@ export default function AIHelperPage() {
         style={{
           flex: 1,
           minWidth: 0,
+          minHeight: 0,
           width: "100%",
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          padding: isDesktop ? "24px" : "10px 14px 14px",
+          padding: isDesktop ? "24px" : "8px 14px 10px",
           boxSizing: "border-box",
+          overflow: "hidden",
         }}
       >
         {/* MINIMAL GEMINI-STYLE MOBILE HEADER */}
@@ -449,9 +479,10 @@ export default function AIHelperPage() {
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              padding: "4px 2px 10px",
+              padding: "2px 2px 8px",
               width: "100%",
               boxSizing: "border-box",
+              flexShrink: 0,
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -497,16 +528,18 @@ export default function AIHelperPage() {
           </div>
         )}
 
-        {/* MESSAGES STREAM */}
+        {/* MESSAGES STREAM (INDEPENDENT SCROLL) */}
         <div
           style={{
             flex: 1,
             minWidth: 0,
+            minHeight: 0,
             overflowY: "auto",
             display: "flex",
             flexDirection: "column",
-            gap: "12px",
-            paddingBottom: "14px",
+            gap: "10px",
+            paddingBottom: "10px",
+            paddingRight: isDesktop ? "6px" : "2px",
           }}
         >
           {messages.length === 0 ? (
@@ -514,7 +547,7 @@ export default function AIHelperPage() {
               style={{
                 textAlign: "center",
                 margin: "auto",
-                padding: isDesktop ? "1.5rem" : "2.5rem 1rem",
+                padding: isDesktop ? "1.5rem" : "2rem 1rem",
                 color: "var(--text-muted)",
                 maxWidth: "460px",
               }}
@@ -540,14 +573,15 @@ export default function AIHelperPage() {
             )
           )}
           {loading && (
-            <div style={{ color: "var(--text-muted)", fontSize: "13px", fontStyle: "italic" }}>
+            <div style={{ color: "var(--text-muted)", fontSize: "13px", fontStyle: "italic", flexShrink: 0 }}>
               AI is breaking down the math steps...
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* FLOATING PILL COMPOSER / PRO CARD + FOOTNOTE */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "100%", maxWidth: "780px", margin: "0 auto", boxSizing: "border-box" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "100%", maxWidth: "780px", margin: "0 auto", boxSizing: "border-box", flexShrink: 0 }}>
           {isPro ? (
             <form
               onSubmit={handleSendMessage}

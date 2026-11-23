@@ -72,6 +72,32 @@ body {
   }
 }
 
+/* --- MAIN CONTENT & HELPER SHELL --- */
+.main-content-area {
+  padding-bottom: 5.5rem;
+}
+
+.main-content-area:has(.helper-shell) {
+  padding-bottom: 0;
+}
+
+.helper-shell {
+  height: calc(100dvh - 3.7rem - env(safe-area-inset-bottom, 0px));
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .main-content-area,
+  .main-content-area:has(.helper-shell) {
+    padding-bottom: 0;
+  }
+
+  .helper-shell {
+    height: calc(100dvh - 75px);
+    overflow: hidden;
+  }
+}
+
 /* --- ENTRANCE ANIMATION --- */
 @keyframes slideUpFade {
   0% {

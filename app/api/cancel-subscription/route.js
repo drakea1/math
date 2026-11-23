@@ -11,40 +11,56 @@ export async function POST(request) {
     const { userId, subscriptionId } = await request.json();
 
     if (!userId || !subscriptionId) {
-      return NextResponse.json({ error: "Missing user or subscription ID" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing user or subscription ID" },
+        { status: 400 }
+      );
     }
 
-    const paddleUrl = process.env.NODE_ENV === "development"
-      ? `https://sandbox-api.paddle.com/subscriptions/${subscriptionId}/cancel`
-      : `https://api.paddle.com/subscriptions/${subscriptionId}/cancel`;
+    const paddleUrl = `https://api.paddle.com/subscriptions/${subscriptionId}/cancel`;
 
     const paddleRes = await fetch(paddleUrl, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.PADDLE_API_KEY}`,
+        Authorization: `Bearer ${process.env.PADDLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        effective_from: "next_billing_period"
+        effective_from: "next_billing_period",
       }),
     });
 
     if (!paddleRes.ok) {
       const errData = await paddleRes.json();
-      return NextResponse.json({ error: errData.error?.message || "Failed to cancel with Paddle" }, { status: 400 });
+      return NextResponse.json(
+        { error: errData.error?.message || "Failed to cancel with Paddle" },
+        { status: 400 }
+      );
     }
 
     const paddleData = await paddleRes.json();
-    // Paddle returns the scheduled change or current billing period end date
-    const endsAt = paddleData.data?.current_billing_period?.ends_at || paddleData.data?.scheduled_change?.effective_at;
+    const endsAt =
+      paddleData.data?.current_billing_period?.ends_at ||
+      paddleData.data?.scheduled_change?.effective_at ||
+      null;
 
-    // Update Supabase profile (keep is_pro true for now, but save when it expires)
-    await supabaseAdmin
+    const updatePayload = {
+      auto_renew: false,
+      ...(endsAt ? { cancel_at: endsAt } : {}),
+    };
+
+    const { error: dbError } = await supabaseAdmin
       .from("profiles")
-      .update({ 
-        cancel_at: endsAt 
-      })
+      .update(updatePayload)
       .eq("id", userId);
+
+    if (dbError) {
+      console.error("Failed to update profile on cancellation:", dbError);
+      return NextResponse.json(
+        { error: "Database update failed" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ success: true, endsAt });
   } catch (err) {

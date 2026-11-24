@@ -58,10 +58,15 @@ export default function Home() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [username, setUsername] = useState('');
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isVerificationSent, setIsVerificationSent] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [canVerifyUnconfirmed, setCanVerifyUnconfirmed] = useState(false);
+  const [resendMessage, setResendMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
@@ -81,9 +86,25 @@ export default function Home() {
   const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
   const passwordsMatch = isSignUp ? password === confirmPassword && password !== '' : true;
 
+  const resetAuthState = (nextSignUp = false) => {
+    setIsVerificationSent(false);
+    setVerificationCode('');
+    setResendMessage('');
+    setIsVerifying(false);
+    setIsResending(false);
+    setCanVerifyUnconfirmed(false);
+    setIsSignUp(nextSignUp);
+    setPassword('');
+    setConfirmPassword('');
+    setUsername('');
+    setErrorMessage('');
+  };
+
   const handleAction = async (e) => {
     e.preventDefault();
     setErrorMessage('');
+    setResendMessage('');
+    setCanVerifyUnconfirmed(false);
 
     if (isSignUp) {
       const check = validateUsername(username);
@@ -93,7 +114,6 @@ export default function Home() {
       }
 
       if (hasMinLength && hasUppercase && hasSpecial && passwordsMatch) {
-        // Trigger Supabase Sign Up with username metadata
         const { data, error } = await supabase.auth.signUp({
           email: email,
           password: password,
@@ -110,6 +130,7 @@ export default function Home() {
           if (data?.session) {
             router.push('/home');
           } else {
+            setVerificationCode('');
             setIsVerificationSent(true);
           }
         }
@@ -117,53 +138,245 @@ export default function Home() {
         setErrorMessage('Please ensure all password requirements are met.');
       }
     } else {
-      // Trigger Supabase Sign In
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: email,
         password: password,
       });
 
       if (error) {
-        setErrorMessage(error.message);
+        const isUnconfirmed = /email not confirmed/i.test(error.message || '');
+        setCanVerifyUnconfirmed(isUnconfirmed);
+        setErrorMessage(
+          isUnconfirmed
+            ? 'Your email is not confirmed yet. Send a verification code to activate your account.'
+            : error.message
+        );
       } else {
         router.push('/home');
       }
     }
   };
 
+  const handleVerifyCode = async (e) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setResendMessage('');
+
+    const token = verificationCode.trim();
+    if (!token) {
+      setErrorMessage('Please enter the verification code from your email.');
+      return;
+    }
+
+    setIsVerifying(true);
+
+    let { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'signup',
+    });
+
+    if (error) {
+      const fallback = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email',
+      });
+      data = fallback.data;
+      error = fallback.error;
+    }
+
+    setIsVerifying(false);
+
+    if (error) {
+      setErrorMessage(error.message || 'Invalid or expired verification code.');
+      return;
+    }
+
+    if (data?.session || data?.user) {
+      router.push('/home');
+    } else {
+      router.push('/home');
+    }
+  };
+
+  const handleResendCode = async () => {
+    setErrorMessage('');
+    setResendMessage('');
+    setIsResending(true);
+
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+    });
+
+    setIsResending(false);
+
+    if (error) {
+      setErrorMessage(error.message);
+    } else {
+      setResendMessage('A new verification code was sent to your email.');
+    }
+  };
+
+  const handleSendCodeFromLogin = async () => {
+    if (!email) return;
+    setErrorMessage('');
+    setResendMessage('');
+    setIsResending(true);
+
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+    });
+
+    setIsResending(false);
+
+    if (error) {
+      setErrorMessage(error.message);
+    } else {
+      setCanVerifyUnconfirmed(false);
+      setVerificationCode('');
+      setResendMessage('We sent a verification code to your email.');
+      setIsVerificationSent(true);
+    }
+  };
+
   if (isVerificationSent) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', padding: '7rem 1.5rem 4rem', alignItems: 'center', justifyContent: 'center', maxWidth: '440px', width: '100%', margin: '0 auto', color: 'var(--text-main)' }}>
-        <div className="verification-screen" style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-          <div className="success-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚡</div>
-          <h1 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '1rem' }}>
-            Verify Email
-          </h1>
-          <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '0.95rem', marginBottom: '2rem' }}>
-            We sent a verification link to <br />
-            <strong style={{ color: 'var(--text-main)' }}>{email}</strong>. <br />
-            Please check your inbox to activate your account.
-          </p>
-          <button 
-            className="btn-signin" 
-            style={{ width: '100%', cursor: 'pointer' }} 
-            onClick={() => {
-              setIsVerificationSent(false);
-              setIsSignUp(false);
-              setEmail('');
-              setPassword('');
-              setConfirmPassword('');
-              setUsername('');
-              setErrorMessage('');
+        <header
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            backgroundColor: 'var(--card-bg)',
+            zIndex: 1000,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingTop: '1.1rem',
+            paddingBottom: '0.85rem',
+            borderBottom: '1px solid var(--surface-border)',
+          }}
+        >
+          <Link
+            href="/"
+            style={{
+              fontWeight: '900',
+              fontSize: '1.8rem',
+              color: 'var(--accent-neon)',
+              textShadow: '0 0 10px var(--accent-neon-glow)',
+              lineHeight: 1.1,
+              textDecoration: 'none',
             }}
           >
-            Back to Login
-          </button>
+            MathAround
+          </Link>
+        </header>
+
+        <div className="verification-screen" style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+          <div className="success-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚡</div>
+          <h1 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '0.75rem' }}>
+            Verify Email
+          </h1>
+          <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+            We sent a verification code to <br />
+            <strong style={{ color: 'var(--text-main)' }}>{email}</strong>. <br />
+            Enter the code below to activate your account.
+          </p>
+
+          <form onSubmit={handleVerifyCode} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+            <input
+              className="input-field"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              placeholder="ENTER VERIFICATION CODE"
+              value={verificationCode}
+              onChange={(e) => setVerificationCode(e.target.value)}
+              required
+              style={{
+                width: '100%',
+                boxSizing: 'border-box',
+                textAlign: 'center',
+                letterSpacing: '0.25em',
+                fontWeight: '700',
+                fontSize: '1.1rem',
+              }}
+            />
+
+            {errorMessage && (
+              <p style={{ color: '#ff4a4a', fontSize: '0.8rem', margin: 0, textAlign: 'center' }}>
+                {errorMessage}
+              </p>
+            )}
+
+            {resendMessage && (
+              <p style={{ color: 'var(--accent-neon)', fontSize: '0.8rem', margin: 0, textAlign: 'center' }}>
+                {resendMessage}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              className="btn-signin"
+              disabled={isVerifying}
+              style={{ width: '100%', cursor: isVerifying ? 'not-allowed' : 'pointer', padding: '12px', opacity: isVerifying ? 0.7 : 1 }}
+            >
+              {isVerifying ? 'Verifying Code...' : 'Confirm Email'}
+            </button>
+          </form>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', width: '100%', marginTop: '1rem' }}>
+            <button
+              type="button"
+              onClick={handleResendCode}
+              disabled={isResending}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: '10px',
+                backgroundColor: 'var(--surface-glass)',
+                border: '1px solid var(--surface-border)',
+                color: 'var(--accent-neon)',
+                fontWeight: '700',
+                fontSize: '0.8rem',
+                cursor: isResending ? 'not-allowed' : 'pointer',
+                opacity: isResending ? 0.7 : 1,
+              }}
+            >
+              {isResending ? 'Sending...' : 'Resend Code'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setEmail('');
+                resetAuthState(false);
+              }}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: '10px',
+                backgroundColor: 'var(--surface-glass)',
+                border: '1px solid var(--surface-border)',
+                color: 'var(--text-main)',
+                fontWeight: '700',
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+              }}
+            >
+              Back to Login
+            </button>
+          </div>
         </div>
       </div>
     );
   }
-  
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', padding: '8rem 1.5rem 2.5rem', alignItems: 'center', justifyContent: 'center', maxWidth: '440px', width: '100%', margin: '0 auto', color: 'var(--text-main)' }}>
 
@@ -203,7 +416,7 @@ export default function Home() {
 
       {/* AUTH CARD CONTAINER */}
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
-        
+
         <div style={{ marginBottom: '2rem', textAlign: 'left' }}>
           <Link
             href="/"
@@ -232,13 +445,37 @@ export default function Home() {
             {isSignUp ? 'Sign Up.' : 'Sign In.'}
           </h1>
         </div>
-        
+
         <form onSubmit={handleAction} style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-          
+
           {errorMessage && (
-            <p style={{ color: '#ff4a4a', fontSize: '0.8rem', marginBottom: '1rem', textAlign: 'center' }}>
-              {errorMessage}
-            </p>
+            <div style={{ marginBottom: '1rem', textAlign: 'center' }}>
+              <p style={{ color: '#ff4a4a', fontSize: '0.8rem', margin: 0 }}>
+                {errorMessage}
+              </p>
+              {canVerifyUnconfirmed && email && (
+                <button
+                  type="button"
+                  onClick={handleSendCodeFromLogin}
+                  disabled={isResending}
+                  style={{
+                    marginTop: '0.65rem',
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    backgroundColor: 'var(--surface-glass)',
+                    border: '1px solid var(--accent-neon)',
+                    color: 'var(--accent-neon)',
+                    fontWeight: '700',
+                    fontSize: '0.8rem',
+                    cursor: isResending ? 'not-allowed' : 'pointer',
+                    opacity: isResending ? 0.7 : 1,
+                  }}
+                >
+                  {isResending ? 'Sending Code...' : 'Send Verification Code'}
+                </button>
+              )}
+            </div>
           )}
 
           {isSignUp && (
@@ -258,7 +495,7 @@ export default function Home() {
               </p>
             </div>
           )}
-          
+
           <div style={{ marginBottom: '1rem', width: '100%' }}>
             <input
               className="input-field"
@@ -270,7 +507,7 @@ export default function Home() {
               style={{ width: '100%', boxSizing: 'border-box' }}
             />
           </div>
-          
+
           <div className="password-container" style={{ position: 'relative', width: '100%', marginBottom: '1rem' }}>
             <input
               className="input-field"
@@ -327,7 +564,7 @@ export default function Home() {
               )}
             </div>
           )}
-          
+
           {isSignUp && (
             <div className="password-container" style={{ position: 'relative', width: '100%', marginBottom: '1rem' }}>
               <input
@@ -349,11 +586,11 @@ export default function Home() {
               </button>
             </div>
           )}
-          
+
           <p className="toggle-auth-text" style={{ textAlign: 'center', fontSize: '0.85rem', margin: '1.2rem 0' }}>
             {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
-            <span 
-              onClick={() => { setIsSignUp(!isSignUp); setPassword(''); setConfirmPassword(''); setUsername(''); setErrorMessage(''); }}
+            <span
+              onClick={() => { setIsSignUp(!isSignUp); setPassword(''); setConfirmPassword(''); setUsername(''); setErrorMessage(''); setCanVerifyUnconfirmed(false); }}
               style={{ color: 'var(--accent-neon)', cursor: 'pointer', fontWeight: '700', textDecoration: 'underline' }}
             >
               {isSignUp ? 'Sign In' : 'Sign Up'}
@@ -372,7 +609,7 @@ export default function Home() {
               </Link>.
             </p>
           )}
-          
+
           <button type="submit" className="btn-signin" style={{ width: '100%', cursor: 'pointer', padding: '12px' }}>
             {isSignUp ? 'Create Account' : 'Sign In Now'}
           </button>

@@ -126,7 +126,7 @@ export default function RefundPolicyPage() {
             fontWeight: '600',
           }}
         >
-          Last Updated: November 22, 2026
+          Last Updated: November 25, 2026
         </p>
 
         <div style={sectionCardStyle}>
@@ -136,8 +136,8 @@ export default function RefundPolicyPage() {
             <a href="https://matharoundapp.com" style={linkStyle}>
               https://matharoundapp.com
             </a>
-            . All payments for MathAround Pro ($8.99/month) are processed by{' '}
-            <strong>Paddle</strong> as our merchant of record.
+            . All payments for MathAround Pro ($8.99/month plus any applicable
+            taxes) are processed through <strong>Stripe</strong>.
           </p>
         </div>
       </header>
@@ -147,15 +147,15 @@ export default function RefundPolicyPage() {
           <h2 style={sectionHeadingStyle}>1. Subscriptions &amp; Cancellations</h2>
           <ul style={listStyle}>
             <li>
-              <strong>Cancel Anytime:</strong> You can cancel your MathAround
-              Pro subscription at any time from your subscription
-              page before your next renewal date.
+              <strong>Cancel Anytime:</strong> You can turn off auto-renewal
+              for your MathAround Pro subscription at any time from your
+              subscription page before your next renewal date.
             </li>
             <li>
-              <strong>Effect of Cancellation:</strong> Canceling stops future
-              recurring charges. You will continue to have full access to
-              MathAround Pro features through the end of your current paid
-              billing period.
+              <strong>Effect of Cancellation:</strong> Turning off auto-renewal
+              stops future recurring charges. You will continue to have full
+              access to MathAround Pro features through the end of your current
+              paid billing period.
             </li>
             <li>
               <strong>No Partial-Period Proration:</strong> Unless eligible
@@ -169,9 +169,9 @@ export default function RefundPolicyPage() {
         <section style={sectionCardStyle}>
           <h2 style={sectionHeadingStyle}>2. Refund Eligibility</h2>
           <p style={{ ...bodyTextStyle, marginBottom: '0.65rem' }}>
-            We review refund requests fairly and in accordance with Paddle&apos;s
-            Buyer Terms and applicable consumer protection laws. You may request
-            a refund within <strong>14 days</strong> of a transaction if:
+            We review refund requests fairly and in accordance with applicable
+            consumer protection laws. You may request a refund within{' '}
+            <strong>14 days</strong> of a transaction if:
           </p>
           <ul style={listStyle}>
             <li>
@@ -184,7 +184,7 @@ export default function RefundPolicyPage() {
             </li>
             <li>
               A refund is required under mandatory consumer rights in your
-              country or region.
+              state, country, or region.
             </li>
           </ul>
         </section>
@@ -196,20 +196,18 @@ export default function RefundPolicyPage() {
             <a href="mailto:matharoundapp@gmail.com" style={linkStyle}>
               matharoundapp@gmail.com
             </a>{' '}
-            with your account email address and your Paddle receipt or
-            transaction ID. You may also contact Paddle buyer support directly
-            via your Paddle order receipt. Please reach out to us before
-            initiating a bank or card chargeback so we can resolve the issue
-            promptly.
+            with your account email address and your Stripe receipt, invoice,
+            or transaction details. Please reach out to us before initiating a
+            bank or card chargeback so we can resolve the issue promptly.
           </p>
         </section>
 
         <section style={sectionCardStyle}>
-          <h2 style={sectionHeadingStyle}>4. Merchant of Record</h2>
+          <h2 style={sectionHeadingStyle}>4. Payment Processing &amp; Refunds</h2>
           <p style={bodyTextStyle}>
-            Paddle acts as the merchant of record for all MathAround Pro orders
-            and handles payment processing, receipts, tax collection, and
-            approved refund disbursements back to your original payment method.
+            Stripe processes all MathAround Pro payments, invoices, and tax
+            calculations on our behalf. Approved refunds are issued back to the
+            original payment method used at checkout.
           </p>
         </section>
       </div>

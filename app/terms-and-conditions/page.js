@@ -126,7 +126,7 @@ export default function TermsAndConditionsPage() {
             fontWeight: '600',
           }}
         >
-          Last Updated: November 20, 2026
+          Last Updated: November 25, 2026
         </p>
 
         <div style={sectionCardStyle}>
@@ -147,7 +147,7 @@ export default function TermsAndConditionsPage() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
         <section style={sectionCardStyle}>
           <h2 style={sectionHeadingStyle}>
-1. Nature of the Service &amp; Educational Disclaimer
+            1. Nature of the Service &amp; Educational Disclaimer
           </h2>
           <p style={bodyTextStyle}>
             MathAround is an interactive math practice and learning platform
@@ -175,7 +175,7 @@ export default function TermsAndConditionsPage() {
 
         <section style={sectionCardStyle}>
           <h2 style={sectionHeadingStyle}>
-3. Accounts, Verification, and Account Management
+            3. Accounts, Verification, and Account Management
           </h2>
           <ul style={listStyle}>
             <li>
@@ -218,33 +218,33 @@ export default function TermsAndConditionsPage() {
 
         <section style={sectionCardStyle}>
           <h2 style={sectionHeadingStyle}>
-4. Free Tier and MathAround Pro Subscription
+            4. Free Tier and MathAround Pro Subscription
           </h2>
           <ul style={listStyle}>
             <li>
               <strong>Free Version:</strong> MathAround offers a free tier with
-              access to core math practice features, subject to any feature limits
-              or changes we may apply from time to time.
+              access to core math practice features, subject to usage limits (such
+              as daily level limits or renewal wait periods) or other changes we
+              may apply from time to time.
             </li>
             <li>
               <strong>MathAround Pro ($8.99/Month):</strong> We offer an
               optional paid subscription called MathAround Pro priced at $8.99 per
-              month, excluding applicable taxes. Paddle acts as our merchant of
-              record for paid subscriptions and calculates, collects, and remits
-              applicable sales tax, VAT, or other taxes at checkout based on your
-              billing location.
+              month, plus any applicable taxes. Payments and subscription
+              billing are processed through <strong>Stripe</strong>, which also
+              calculates or handles applicable taxes at checkout based on your
+              billing location and product settings.
             </li>
             <li>
               <strong>Billing, Renewal, &amp; Cancellation:</strong> If you
-              purchase MathAround Pro, you authorize Paddle (our payment
-              processor and merchant of record) to charge $8.99/month plus any
-              applicable taxes on a recurring monthly basis until you cancel. You
-              may cancel your subscription before your next billing date in
-              accordance with the billing instructions provided at checkout, via
-              Paddle&apos;s billing portal/link, or in your account settings;
-              cancellation stops future recurring charges, though payments already
-              processed are non-refundable except where required by applicable law
-              or permitted under Paddle&apos;s refund terms.
+              purchase MathAround Pro, you authorize recurring monthly charges of
+              $8.99/month plus any applicable taxes via Stripe until you cancel.
+              You can turn off auto-renewal at any time on your subscription page
+              before your next billing date; turning off auto-renewal stops
+              future recurring renewals while keeping your Pro access active
+              through the end of your current paid billing period. Payments
+              already processed are generally non-refundable except where
+              required by applicable law or as described in our Refund Policy.
             </li>
             <li>
               <strong>Price &amp; Plan Changes:</strong> Subscription pricing,
@@ -256,7 +256,7 @@ export default function TermsAndConditionsPage() {
 
         <section style={sectionCardStyle}>
           <h2 style={sectionHeadingStyle}>
-5. AI Helper, Chat Storage, &amp; Daily Usage Limits
+            5. AI Helper, Chat Storage, &amp; Daily Usage Limits
           </h2>
           <p style={bodyTextStyle}>
             MathAround includes an AI helper feature designed to assist with math
@@ -316,19 +316,18 @@ export default function TermsAndConditionsPage() {
 
         <section style={sectionCardStyle}>
           <h2 style={sectionHeadingStyle}>
-7. Backend &amp; Third-Party Services
+            7. Backend &amp; Third-Party Services
           </h2>
           <p style={bodyTextStyle}>
             MathAround relies on third-party infrastructure and service providers
             to operate—including Supabase for backend services (such as
             authentication, database storage, and related backend operations) and
-            Paddle as our merchant of record and payment processor for
-            subscriptions and tax handling, as well as hosting and analytics
-            providers as applicable. Your use of the Service may also be subject
-            to the terms and policies of those underlying providers to the extent
-            they interact with your use of MathAround. We are not responsible for
-            outages, delays, or issues caused by third-party providers outside
-            our reasonable control.
+            Stripe as our payment processor for subscriptions and tax handling, as
+            well as hosting and analytics providers as applicable. Your use of the
+            Service may also be subject to the terms and policies of those
+            underlying providers to the extent they interact with your use of
+            MathAround. We are not responsible for outages, delays, or issues
+            caused by third-party providers outside our reasonable control.
           </p>
         </section>
 

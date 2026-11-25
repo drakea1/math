@@ -1,70 +1,88 @@
 import { NextResponse } from "next/server";
+import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+export const dynamic = "force-dynamic";
 
-export async function POST(request) {
+function getStripe() {
+  return new Stripe(process.env.STRIPE_SECRET_KEY);
+}
+
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+}
+
+export async function POST(req) {
   try {
-    const { userId, subscriptionId } = await request.json();
+    const { userId, subscriptionId: bodySubId } = await req.json();
 
-    if (!userId || !subscriptionId) {
+    if (!userId && !bodySubId) {
       return NextResponse.json(
-        { error: "Missing user or subscription ID" },
+        { error: "Missing userId or subscriptionId." },
         { status: 400 }
       );
     }
 
-    const paddleUrl = `https://api.paddle.com/subscriptions/${subscriptionId}/cancel`;
+    const supabase = getSupabaseAdmin();
+    let subscriptionId = bodySubId;
+    let targetUserId = userId;
 
-    const paddleRes = await fetch(paddleUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.PADDLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        effective_from: "next_billing_period",
-      }),
+    if (!subscriptionId && userId) {
+      const { data: profile, error: fetchError } = await supabase
+        .from("profiles")
+        .select("id, subscription_id")
+        .eq("id", userId)
+        .single();
+
+      if (fetchError || !profile?.subscription_id) {
+        return NextResponse.json(
+          { error: "No active subscription found for this account." },
+          { status: 404 }
+        );
+      }
+
+      subscriptionId = profile.subscription_id;
+      targetUserId = profile.id;
+    }
+
+    const stripe = getStripe();
+    const updatedSub = await stripe.subscriptions.update(subscriptionId, {
+      cancel_at_period_end: true,
     });
 
-    if (!paddleRes.ok) {
-      const errData = await paddleRes.json();
-      return NextResponse.json(
-        { error: errData.error?.message || "Failed to cancel with Paddle" },
-        { status: 400 }
-      );
-    }
+    const cancelAtIso = updatedSub.cancel_at
+      ? new Date(updatedSub.cancel_at * 1000).toISOString()
+      : null;
 
-    const paddleData = await paddleRes.json();
-    const endsAt =
-      paddleData.data?.current_billing_period?.ends_at ||
-      paddleData.data?.scheduled_change?.effective_at ||
-      null;
-
-    const updatePayload = {
+    const updateQuery = supabase.from("profiles").update({
       auto_renew: false,
-      ...(endsAt ? { cancel_at: endsAt } : {}),
-    };
+      cancel_at: cancelAtIso,
+    });
 
-    const { error: dbError } = await supabaseAdmin
-      .from("profiles")
-      .update(updatePayload)
-      .eq("id", userId);
+    const { error: dbError } = targetUserId
+      ? await updateQuery.eq("id", targetUserId)
+      : await updateQuery.eq("subscription_id", subscriptionId);
 
     if (dbError) {
-      console.error("Failed to update profile on cancellation:", dbError);
+      console.error("Failed updating profile after Stripe cancel:", dbError);
       return NextResponse.json(
-        { error: "Database update failed" },
+        { error: "Canceled in Stripe, but failed updating profile." },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({ success: true, endsAt });
+    return NextResponse.json({
+      success: true,
+      cancel_at: cancelAtIso,
+    });
   } catch (err) {
-    console.error("Cancellation error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error("Stripe cancel-subscription error:", err);
+    return NextResponse.json(
+      { error: err.message || "Failed to cancel subscription." },
+      { status: 500 }
+    );
   }
 }

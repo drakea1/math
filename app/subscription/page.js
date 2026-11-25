@@ -2,14 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { initializePaddle } from "@paddle/paddle-js";
 import { supabase } from "../../supabaseClient";
 
-const PADDLE_PRICE_ID = process.env.NEXT_PUBLIC_PADDLE_PRICE_ID;
+const STRIPE_PRICE_ID = process.env.NEXT_PUBLIC_STRIPE_PRICE_ID;
 
 export default function SubscriptionPage() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [paddle, setPaddle] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const [userEmail, setUserEmail] = useState("");
   const [userId, setUserId] = useState("");
   const [isPro, setIsPro] = useState(false);
@@ -18,7 +16,9 @@ export default function SubscriptionPage() {
   const [subscriptionStartedAt, setSubscriptionStartedAt] = useState("");
   const [autoRenew, setAutoRenew] = useState(true);
   const [invoiceUrl, setInvoiceUrl] = useState("");
+  const [startingCheckout, setStartingCheckout] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [checkoutBanner, setCheckoutBanner] = useState("");
 
   const [showCancelModal, setShowCancelModal] = useState(false);
 
@@ -36,28 +36,50 @@ export default function SubscriptionPage() {
 
   useEffect(() => {
     const checkTheme = () => {
-      const darkActive =
-        document.documentElement.classList.contains("dark") ||
-        document.body.classList.contains("dark") ||
-        window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setIsDarkMode(darkActive);
+      const root = document.documentElement;
+      const body = document.body;
+      const hasLightMarker =
+        root.classList.contains("light") ||
+        body.classList.contains("light") ||
+        root.getAttribute("data-theme") === "light" ||
+        body.getAttribute("data-theme") === "light";
+
+      const hasDarkMarker =
+        root.classList.contains("dark") ||
+        body.classList.contains("dark") ||
+        root.getAttribute("data-theme") === "dark" ||
+        body.getAttribute("data-theme") === "dark";
+
+      if (hasDarkMarker) {
+        setIsDarkMode(true);
+      } else if (hasLightMarker) {
+        setIsDarkMode(false);
+      } else {
+        setIsDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
+      }
     };
+
     checkTheme();
 
-    async function initPaddle() {
-      const clientToken = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
-      if (!clientToken) {
-        console.error("Missing NEXT_PUBLIC_PADDLE_CLIENT_TOKEN");
-        return;
-      }
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "data-theme"],
+    });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class", "data-theme"],
+    });
 
-      const paddleInstance = await initializePaddle({
-        environment: "production",
-        token: clientToken,
-      });
-      setPaddle(paddleInstance);
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    mediaQuery.addEventListener("change", checkTheme);
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("checkout") === "success") {
+      setCheckoutBanner("Payment received! Updating your MathAround Pro status...");
+    } else if (params.get("checkout") === "canceled") {
+      setCheckoutBanner("Checkout was canceled. You were not charged.");
     }
-    initPaddle();
 
     async function getUserData() {
       const {
@@ -91,28 +113,48 @@ export default function SubscriptionPage() {
       }
     }
     getUserData();
+
+    return () => {
+      observer.disconnect();
+      mediaQuery.removeEventListener("change", checkTheme);
+    };
   }, []);
 
-  const handleCheckout = () => {
-    if (!paddle) {
-      alert("Paddle is still loading, please try again in a second.");
-      return;
-    }
-    if (!PADDLE_PRICE_ID) {
+  const handleCheckout = async () => {
+    if (!STRIPE_PRICE_ID) {
       alert("Checkout configuration is missing. Please try again later.");
-      console.error("Missing NEXT_PUBLIC_PADDLE_PRICE_ID");
+      console.error("Missing checkout configuration");
       return;
     }
-    if (!userEmail) {
+    if (!userId || !userEmail) {
       alert("Please log in first before upgrading!");
       return;
     }
 
-    paddle.Checkout.open({
-      items: [{ priceId: PADDLE_PRICE_ID, quantity: 1 }],
-      customer: { email: userEmail },
-      customData: { user_id: userId },
-    });
+    setStartingCheckout(true);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          email: userEmail,
+          priceId: STRIPE_PRICE_ID,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(`Error: ${data.error || "Unable to start checkout."}`);
+        setStartingCheckout(false);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong starting checkout. Please try again.");
+      setStartingCheckout(false);
+    }
   };
 
   const confirmCancelSubscription = async () => {
@@ -128,7 +170,8 @@ export default function SubscriptionPage() {
       const data = await res.json();
       if (res.ok) {
         setAutoRenew(false);
-        if (data.endsAt) setCancelAt(data.endsAt);
+        const endDate = data.cancel_at || data.endsAt;
+        if (endDate) setCancelAt(endDate);
       } else {
         alert(`Error: ${data.error}`);
       }
@@ -179,6 +222,24 @@ export default function SubscriptionPage() {
           <p style={{ color: "var(--text-muted)", fontSize: "15px", maxWidth: "540px", margin: "0 auto", lineHeight: "1.5" }}>
             Compare plans and choose the experience that fits your learning pace.
           </p>
+
+          {checkoutBanner && (
+            <div
+              style={{
+                marginTop: "18px",
+                display: "inline-block",
+                padding: "10px 16px",
+                borderRadius: "12px",
+                fontSize: "13.5px",
+                fontWeight: "600",
+                backgroundColor: isDarkMode ? "rgba(22, 163, 74, 0.15)" : "#f0fdf4",
+                border: "1px solid #16a34a",
+                color: "#16a34a",
+              }}
+            >
+              {checkoutBanner}
+            </div>
+          )}
         </div>
 
         {/* Pricing Cards Grid */}
@@ -251,6 +312,7 @@ export default function SubscriptionPage() {
                 style={{
                   width: "100%",
                   backgroundColor: isDarkMode ? "#171717" : "#f1f5f9",
+                  border: "1px solid var(--surface-border)",
                   color: "var(--text-muted)",
                   fontWeight: "600",
                   padding: "14px 18px",
@@ -454,6 +516,7 @@ export default function SubscriptionPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 <button
                   onClick={handleCheckout}
+                  disabled={startingCheckout}
                   style={{
                     width: "100%",
                     backgroundColor: "#16a34a",
@@ -462,14 +525,19 @@ export default function SubscriptionPage() {
                     padding: "14px",
                     borderRadius: "14px",
                     border: "none",
-                    cursor: "pointer",
+                    cursor: startingCheckout ? "not-allowed" : "pointer",
+                    opacity: startingCheckout ? 0.75 : 1,
                     fontSize: "15px",
                     transition: "background 0.2s",
                   }}
-                  onMouseOver={(e) => (e.target.style.backgroundColor = "#15803d")}
-                  onMouseOut={(e) => (e.target.style.backgroundColor = "#16a34a")}
+                  onMouseOver={(e) => {
+                    if (!startingCheckout) e.target.style.backgroundColor = "#15803d";
+                  }}
+                  onMouseOut={(e) => {
+                    if (!startingCheckout) e.target.style.backgroundColor = "#16a34a";
+                  }}
                 >
-                  Upgrade to Pro
+                  {startingCheckout ? "Redirecting to Stripe..." : "Upgrade to Pro"}
                 </button>
                 <p
                   style={{
@@ -480,7 +548,7 @@ export default function SubscriptionPage() {
                     textAlign: "center",
                   }}
                 >
-                  Renews monthly at $8.99 + applicable taxes via Paddle until canceled. By upgrading, you agree to our{" "}
+                  Renews monthly at $8.99 + applicable taxes via Stripe until canceled. By upgrading, you agree to our{" "}
                   <Link
                     href="/terms-and-conditions"
                     style={{ color: "var(--text-main)", fontWeight: "600", textDecoration: "underline" }}

@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function TermsAndConditionsPage() {
+export default function PrivacyPolicyPage() {
   const router = useRouter();
 
   useEffect(() => {
@@ -126,7 +126,7 @@ export default function TermsAndConditionsPage() {
             fontWeight: '600',
           }}
         >
-          Last Updated: November 20, 2026
+          Last Updated: November 25, 2026
         </p>
 
         <div style={sectionCardStyle}>
@@ -168,10 +168,13 @@ export default function TermsAndConditionsPage() {
             </li>
             <li>
               <strong>Subscription &amp; Billing Data:</strong> MathAround Pro
-              ($8.99/month) subscriptions are processed by{' '}
-              <strong>Paddle</strong> as our merchant of record. Paddle handles
-              payment details, billing location, and applicable taxes; we only
-              receive subscription/billing status needed to manage your access.
+              ($8.99/month plus any applicable taxes) subscriptions are
+              processed by <strong>Stripe</strong>. Stripe handles payment
+              methods, billing location/tax details, receipts, and recurring
+              subscription billing; we store subscription and billing status
+              fields (such as Pro status, subscription ID, start/cancellation
+              dates, auto-renewal status, and invoice links) needed to manage
+              your access.
             </li>
             <li>
               <strong>Support &amp; Technical Logs:</strong> Messages you send to{' '}
@@ -195,7 +198,7 @@ export default function TermsAndConditionsPage() {
               enforce daily usage limits;
             </li>
             <li>
-              Process and manage MathAround Pro subscriptions through Paddle;
+              Process and manage MathAround Pro subscriptions through Stripe;
             </li>
             <li>
               Protect the Service against abuse, bots, or security issues, and
@@ -213,9 +216,9 @@ export default function TermsAndConditionsPage() {
             data submitted through the API is not used by default to train
             OpenAI&apos;s models (unless opted in), though OpenAI may retain API
             data temporarily (such as for abuse monitoring) in accordance with
-            its API policies. Deleting a chat in MathAround
-            removes that chat from active storage. Avoid entering sensitive
-            personal or confidential details into AI prompts.
+            its API policies. Deleting a chat in MathAround removes that chat
+            from active storage. Avoid entering sensitive personal or confidential
+            details into AI prompts.
           </p>
         </section>
 
@@ -232,10 +235,8 @@ export default function TermsAndConditionsPage() {
               OpenAI API to generate educational responses and hints.
             </li>
             <li>
-              <strong>Paddle:</strong> Acts as our merchant of record and payment
-              processor for MathAround Pro subscriptions, calculating and
-              collecting applicable taxes at checkout and handling recurring
-              billing.
+              <strong>Stripe:</strong> Processes MathAround Pro payments,
+              recurring subscriptions, invoices, and applicable tax handling.
             </li>
             <li>
               <strong>Hosting &amp; Infrastructure Providers:</strong> Services
@@ -253,7 +254,7 @@ export default function TermsAndConditionsPage() {
             removes them from your chats. You can also delete your account/profile
             through the Service, which deletes or removes your profile and
             associated account data from active storage, except where limited
-            records (such as billing/tax records handled through Paddle,
+            records (such as billing/tax records handled through Stripe,
             security logs, or legal compliance records) must be retained by law
             or payment rules.
           </p>

@@ -18,7 +18,6 @@ export default function SubscriptionPage() {
   const [subscriptionStartedAt, setSubscriptionStartedAt] = useState("");
   const [autoRenew, setAutoRenew] = useState(true);
   const [invoiceUrl, setInvoiceUrl] = useState("");
-  const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
 
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -66,7 +65,6 @@ export default function SubscriptionPage() {
         error: authError,
       } = await supabase.auth.getUser();
       if (authError || !user) {
-        setLoading(false);
         return;
       }
 
@@ -91,8 +89,6 @@ export default function SubscriptionPage() {
         if (profile.auto_renew !== undefined) setAutoRenew(profile.auto_renew);
         if (profile.latest_invoice_url) setInvoiceUrl(profile.latest_invoice_url);
       }
-
-      setLoading(false);
     }
     getUserData();
   }, []);
@@ -143,14 +139,6 @@ export default function SubscriptionPage() {
       setCancelling(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div style={{ padding: "40px", textAlign: "center", color: "var(--text-muted)" }}>
-        Loading membership details...
-      </div>
-    );
-  }
 
   return (
     <>

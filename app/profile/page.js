@@ -83,12 +83,19 @@ export default function Profile() {
   // Dark Mode State
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // New state variables for email change and account deletion
+  // Email change OTP state
   const [newEmail, setNewEmail] = useState('');
+  const [pendingEmail, setPendingEmail] = useState('');
+  const [isEmailCodeSent, setIsEmailCodeSent] = useState(false);
+  const [emailChangeCode, setEmailChangeCode] = useState('');
+  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
+  const [isVerifyingEmailCode, setIsVerifyingEmailCode] = useState(false);
   const [emailStatus, setEmailStatus] = useState('');
+
+  // Account deletion state
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleteStatus, setDeleteStatus] = useState('');
-  
+
   const router = useRouter();
 
   // League calculation helper
@@ -106,14 +113,14 @@ export default function Profile() {
       { name: 'GOAT', threshold: 100000, color: '#ff3b30' },
     ];
     const found = [...leagues].reverse().find(l => xp >= l.threshold);
-    return found || leagues[0]; 
+    return found || leagues[0];
   };
 
   const currentLeague = getLeague(profileData.xp);
 
   useEffect(() => {
     // Check initial dark mode state from DOM / localStorage
-    const currentTheme = localStorage.getItem('matharound_theme') || 
+    const currentTheme = localStorage.getItem('matharound_theme') ||
       (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
     if (currentTheme === 'dark') {
       setIsDarkMode(true);
@@ -136,10 +143,10 @@ export default function Profile() {
       setProfileData(profile);
       setNewUsername(profile.username || '');
     }
-    if (user?.email) {
+    if (user?.email && !isEmailCodeSent) {
       setNewEmail(user.email);
     }
-  }, [user, profile, router]);
+  }, [user, profile, router, isEmailCodeSent]);
 
   const toggleDarkMode = () => {
     setIsDarkMode(prev => {
@@ -201,10 +208,10 @@ export default function Profile() {
     setSaveStatus('Saving...');
     const { error } = await supabase
       .from('profiles')
-      .upsert({ 
-        id: user.id, 
-        username: check.username, 
-        xp: profileData.xp 
+      .upsert({
+        id: user.id,
+        username: check.username,
+        xp: profileData.xp
       });
 
     if (error) {
@@ -224,16 +231,66 @@ export default function Profile() {
   };
 
   const handleUpdateEmail = async () => {
-    if (!newEmail || newEmail === user?.email) return;
-    setEmailStatus('Sending confirmation...');
-    const { error } = await supabase.auth.updateUser({ email: newEmail });
+    const trimmedEmail = (newEmail || '').trim();
+    if (!trimmedEmail || trimmedEmail.toLowerCase() === (user?.email || '').toLowerCase()) {
+      setEmailStatus('Enter a different email address first.');
+      return;
+    }
+
+    setIsUpdatingEmail(true);
+    setEmailStatus('Sending verification code...');
+
+    const { error } = await supabase.auth.updateUser({ email: trimmedEmail });
+
+    setIsUpdatingEmail(false);
 
     if (error) {
       setEmailStatus(`Error: ${error.message}`);
     } else {
-      setEmailStatus('Check your new email inbox to confirm!');
-      setTimeout(() => setEmailStatus(''), 4000);
+      setPendingEmail(trimmedEmail);
+      setEmailChangeCode('');
+      setIsEmailCodeSent(true);
+      setEmailStatus(`Verification code sent to ${trimmedEmail}. Enter it below.`);
     }
+  };
+
+  const handleVerifyEmailChangeCode = async (e) => {
+    e.preventDefault();
+    const targetEmail = (pendingEmail || newEmail || '').trim();
+    const token = emailChangeCode.trim();
+
+    if (!targetEmail) {
+      setEmailStatus('Error: Missing target email address.');
+      return;
+    }
+    if (!token) {
+      setEmailStatus('Error: Please enter the verification code from your email.');
+      return;
+    }
+
+    setIsVerifyingEmailCode(true);
+    setEmailStatus('Verifying code...');
+
+    const { error } = await supabase.auth.verifyOtp({
+      email: targetEmail,
+      token,
+      type: 'email_change',
+    });
+
+    setIsVerifyingEmailCode(false);
+
+    if (error) {
+      setEmailStatus(`Error: ${error.message || 'Invalid or expired verification code.'}`);
+      return;
+    }
+
+    await supabase.auth.refreshSession();
+    setIsEmailCodeSent(false);
+    setPendingEmail('');
+    setEmailChangeCode('');
+    setNewEmail(targetEmail);
+    setEmailStatus('Email address updated!');
+    setTimeout(() => setEmailStatus(''), 4000);
   };
 
   const handleDeleteAccount = async () => {
@@ -250,7 +307,7 @@ export default function Profile() {
     await supabase.auth.signOut();
     window.location.href = '/';
   };
-  
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     window.location.href = '/';
@@ -258,22 +315,22 @@ export default function Profile() {
 
   return (
     <div style={{ padding: '2.5rem 1.5rem 4rem', maxWidth: '700px', minHeight: '100vh', margin: '0 auto', color: 'var(--text-main)', display: 'flex', flexDirection: 'column' }}>
-      
+
       {/* 1. MAIN HUB VIEW */}
       {activeView === 'hub' && (
         <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          
+
           {/* DYNAMIC LEAGUE SYMBOL RING DECORATION */}
-          <div style={{ 
-            width: '90px', 
-            height: '90px', 
-            borderRadius: '50%', 
+          <div style={{
+            width: '90px',
+            height: '90px',
+            borderRadius: '50%',
             background: 'var(--card-bg)',
             border: '2px solid var(--accent-neon)',
             boxShadow: '0 0 25px var(--accent-neon-glow, rgba(0,255,128,0.15))',
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             fontSize: '2.5rem',
             marginBottom: '1.2rem'
           }}>
@@ -293,13 +350,13 @@ export default function Profile() {
             {profileData.username || 'Anonymous Commander'}
           </h1>
           <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', fontSize: '0.95rem' }}>{user ? user.email : 'Loading command profile...'}</p>
-          
+
           {/* XP HERO CARD */}
-          <div style={{ 
+          <div style={{
             width: '100%',
-            padding: '2rem', 
-            borderRadius: '24px', 
-            marginBottom: '2rem', 
+            padding: '2rem',
+            borderRadius: '24px',
+            marginBottom: '2rem',
             background: 'var(--card-bg)',
             border: '1px solid var(--surface-border)',
             boxShadow: '0 10px 30px rgba(0, 0, 0, 0.04)',
@@ -320,16 +377,16 @@ export default function Profile() {
           {/* ACTION BUTTONS */}
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
             <div style={{ width: '100%', display: 'flex', gap: '1rem' }}>
-              <button 
-                onClick={() => setActiveView('profile')} 
-                style={{ 
+              <button
+                onClick={() => setActiveView('profile')}
+                style={{
                   flex: 1,
-                  padding: '1.1rem', 
-                  background: 'var(--accent-neon)', 
-                  border: 'none', 
-                  borderRadius: '16px', 
-                  color: '#000000', 
-                  cursor: 'pointer', 
+                  padding: '1.1rem',
+                  background: 'var(--accent-neon)',
+                  border: 'none',
+                  borderRadius: '16px',
+                  color: '#000000',
+                  cursor: 'pointer',
                   fontWeight: '900',
                   fontSize: '1rem',
                   letterSpacing: '0.3px',
@@ -338,16 +395,16 @@ export default function Profile() {
               >
                 👤 Profile View
               </button>
-              <button 
-                onClick={() => setActiveView('settings')} 
-                style={{ 
+              <button
+                onClick={() => setActiveView('settings')}
+                style={{
                   flex: 1,
-                  padding: '1.1rem', 
-                  background: 'var(--card-bg)', 
-                  border: '1px solid var(--surface-border)', 
-                  borderRadius: '16px', 
-                  color: 'var(--text-main)', 
-                  cursor: 'pointer', 
+                  padding: '1.1rem',
+                  background: 'var(--card-bg)',
+                  border: '1px solid var(--surface-border)',
+                  borderRadius: '16px',
+                  color: 'var(--text-main)',
+                  cursor: 'pointer',
                   fontWeight: '900',
                   fontSize: '1rem',
                   letterSpacing: '0.3px',
@@ -481,15 +538,15 @@ export default function Profile() {
       {/* 2. DEDICATED PROFILE VIEW */}
       {activeView === 'profile' && (
         <div>
-          <button 
-            onClick={() => setActiveView('hub')} 
+          <button
+            onClick={() => setActiveView('hub')}
             style={{ background: 'none', border: 'none', color: 'var(--text-muted)', marginBottom: '1.5rem', cursor: 'pointer', fontWeight: '700', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
           >
             ← Back
           </button>
-          
+
           <h2 style={{ marginBottom: '1.8rem', color: 'var(--text-main)', fontWeight: '800', fontSize: '2rem', letterSpacing: '-0.03em' }}>Profile</h2>
-          
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
             <div style={{ padding: '1.8rem', background: 'var(--card-bg)', border: '1px solid var(--surface-border)', borderRadius: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '700', letterSpacing: '0.1em', marginBottom: '0.4rem' }}>USERNAME</p>
@@ -526,32 +583,32 @@ export default function Profile() {
       {/* 3. DEDICATED SETTINGS VIEW */}
       {activeView === 'settings' && (
         <div>
-          <button 
-            onClick={() => setActiveView('hub')} 
+          <button
+            onClick={() => setActiveView('hub')}
             style={{ background: 'none', border: 'none', color: 'var(--text-muted)', marginBottom: '1.5rem', cursor: 'pointer', fontWeight: '700', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
           >
             ← Back
           </button>
-          
+
           <h2 style={{ marginBottom: '1.8rem', color: 'var(--text-main)', fontWeight: '800', fontSize: '2rem', letterSpacing: '-0.03em' }}>Settings</h2>
-          
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-            
+
             {/* APPEARANCE / DARK MODE TOGGLE */}
             <div style={{ padding: '1.5rem', background: 'var(--card-bg)', border: '1px solid var(--surface-border)', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
               <div>
                 <p style={{ fontSize: '1rem', color: 'var(--text-main)', fontWeight: '700', marginBottom: '0.2rem' }}>Interface Theme</p>
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Toggle app-wide dark mode </p>
               </div>
-              <button 
+              <button
                 onClick={toggleDarkMode}
-                style={{ 
-                  padding: '0.5rem 1.0rem', 
-                  background: isDarkMode ? 'var(--accent-neon)' : 'var(--card-bg)', 
-                  color: isDarkMode ? '#000000' : 'var(--text-main)', 
-                  border: isDarkMode ? 'none' : '1px solid var(--surface-border)', 
-                  borderRadius: '15px', 
-                  fontWeight: '800', 
+                style={{
+                  padding: '0.5rem 1.0rem',
+                  background: isDarkMode ? 'var(--accent-neon)' : 'var(--card-bg)',
+                  color: isDarkMode ? '#000000' : 'var(--text-main)',
+                  border: isDarkMode ? 'none' : '1px solid var(--surface-border)',
+                  borderRadius: '15px',
+                  fontWeight: '800',
                   fontSize: '0.75rem',
                   cursor: 'pointer',
                   boxShadow: isDarkMode ? '0 0 15px var(--accent-neon-glow)' : 'none',
@@ -566,25 +623,25 @@ export default function Profile() {
             <div style={{ padding: '1.5rem', background: 'var(--card-bg)', border: '1px solid var(--surface-border)', borderRadius: '20px', display: 'block', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
               <p style={{ marginBottom: '0.6rem', fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '700', letterSpacing: '0.05em' }}>EDIT USERNAME</p>
               <div style={{ display: 'flex', gap: '0.6rem' }}>
-                <input 
-                  type="text" 
-                  value={newUsername} 
+                <input
+                  type="text"
+                  value={newUsername}
                   maxLength={20}
-                  onChange={(e) => setNewUsername(e.target.value)} 
-                  placeholder="e.g. MathGenius99" 
-                  style={{ 
-                    flex: 1, 
-                    padding: '0.8rem 1rem', 
-                    borderRadius: '12px', 
-                    background: 'var(--surface-glass, rgba(0,0,0,0.02))', 
-                    border: '1px solid var(--surface-border)', 
+                  onChange={(e) => setNewUsername(e.target.value)}
+                  placeholder="e.g. MathGenius99"
+                  style={{
+                    flex: 1,
+                    padding: '0.8rem 1rem',
+                    borderRadius: '12px',
+                    background: 'var(--surface-glass, rgba(0,0,0,0.02))',
+                    border: '1px solid var(--surface-border)',
                     color: 'var(--text-main)',
                     outline: 'none',
                     fontWeight: '600'
-                  }} 
+                  }}
                 />
-                <button 
-                  onClick={handleSaveUsername} 
+                <button
+                  onClick={handleSaveUsername}
                   style={{ padding: '0 1.2rem', background: 'var(--accent-neon)', color: '#000000', border: 'none', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}
                 >
                   Save
@@ -600,36 +657,116 @@ export default function Profile() {
             <div style={{ padding: '1.5rem', background: 'var(--card-bg)', border: '1px solid var(--surface-border)', borderRadius: '20px', display: 'block', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
               <p style={{ marginBottom: '0.6rem', fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '700', letterSpacing: '0.05em' }}>CHANGE EMAIL ADDRESS</p>
               <div style={{ display: 'flex', gap: '0.6rem' }}>
-                <input 
-                  type="email" 
-                  value={newEmail} 
-                  onChange={(e) => setNewEmail(e.target.value)} 
-                  placeholder="new@email.com" 
-                  style={{ 
-                    flex: 1, 
-                    padding: '0.8rem 1rem', 
-                    borderRadius: '12px', 
-                    background: 'var(--surface-glass, rgba(0,0,0,0.02))', 
-                    border: '1px solid var(--surface-border)', 
+                <input
+                  type="email"
+                  value={newEmail}
+                  disabled={isEmailCodeSent}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="new@email.com"
+                  style={{
+                    flex: 1,
+                    padding: '0.8rem 1rem',
+                    borderRadius: '12px',
+                    background: 'var(--surface-glass, rgba(0,0,0,0.02))',
+                    border: '1px solid var(--surface-border)',
                     color: 'var(--text-main)',
                     outline: 'none',
-                    fontWeight: '600'
-                  }} 
+                    fontWeight: '600',
+                    opacity: isEmailCodeSent ? 0.75 : 1
+                  }}
                 />
-                <button 
-                  onClick={handleUpdateEmail} 
-                  style={{ padding: '0 1.2rem', background: 'var(--text-main)', color: 'var(--card-bg)', border: 'none', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}
+                <button
+                  type="button"
+                  onClick={handleUpdateEmail}
+                  disabled={isUpdatingEmail}
+                  style={{
+                    padding: '0 1.2rem',
+                    background: 'var(--accent-neon)',
+                    color: '#000000',
+                    border: 'none',
+                    borderRadius: '12px',
+                    fontWeight: '800',
+                    cursor: isUpdatingEmail ? 'not-allowed' : 'pointer',
+                    opacity: isUpdatingEmail ? 0.7 : 1
+                  }}
                 >
-                  Update
+                  {isUpdatingEmail ? 'Sending...' : isEmailCodeSent ? 'Resend Code' : 'Send Code'}
                 </button>
               </div>
-              {emailStatus && <p style={{ marginTop: '0.6rem', fontSize: '0.8rem', color: emailStatus.includes('Error') ? '#ff4a4a' : 'var(--accent-neon)', fontWeight: '700' }}>{emailStatus}</p>}
+
+              {isEmailCodeSent && (
+                <form onSubmit={handleVerifyEmailChangeCode} style={{ marginTop: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    value={emailChangeCode}
+                    onChange={(e) => setEmailChangeCode(e.target.value)}
+                    placeholder="ENTER VERIFICATION CODE"
+                    style={{
+                      width: '100%',
+                      padding: '0.8rem 1rem',
+                      borderRadius: '12px',
+                      background: 'var(--surface-glass, rgba(0,0,0,0.02))',
+                      border: '1px solid var(--surface-border)',
+                      color: 'var(--text-main)',
+                      outline: 'none',
+                      fontWeight: '700',
+                      textAlign: 'center',
+                      letterSpacing: '0.2em',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                  <div style={{ display: 'flex', gap: '0.6rem' }}>
+                    <button
+                      type="submit"
+                      disabled={isVerifyingEmailCode}
+                      style={{
+                        flex: 1,
+                        padding: '0.8rem 1rem',
+                        background: 'var(--accent-neon)',
+                        color: '#000000',
+                        border: 'none',
+                        borderRadius: '12px',
+                        fontWeight: '800',
+                        cursor: isVerifyingEmailCode ? 'not-allowed' : 'pointer',
+                        opacity: isVerifyingEmailCode ? 0.7 : 1
+                      }}
+                    >
+                      {isVerifyingEmailCode ? 'Verifying...' : 'Confirm Email Change'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEmailCodeSent(false);
+                        setPendingEmail('');
+                        setEmailChangeCode('');
+                        setEmailStatus('');
+                        if (user?.email) setNewEmail(user.email);
+                      }}
+                      style={{
+                        padding: '0.8rem 1rem',
+                        background: 'transparent',
+                        border: '1px solid var(--surface-border)',
+                        color: 'var(--text-muted)',
+                        borderRadius: '12px',
+                        fontWeight: '700',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {emailStatus && <p style={{ marginTop: '0.6rem', fontSize: '0.8rem', color: emailStatus.startsWith('Error') ? '#ff4a4a' : 'var(--accent-neon)', fontWeight: '700' }}>{emailStatus}</p>}
             </div>
 
             {/* SECURITY */}
             <div style={{ padding: '1.5rem', background: 'var(--card-bg)', border: '1px solid var(--surface-border)', borderRadius: '20px', display: 'block', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
                <p style={{ marginBottom: '0.8rem', fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '700', letterSpacing: '0.05em' }}>SECURITY</p>
-               <button 
+               <button
                  onClick={() => router.push('/reset-password')}
                  style={{ width: '100%', padding: '0.9rem', background: 'transparent', border: '1px solid var(--surface-border)', borderRadius: '12px', color: 'var(--text-main)', cursor: 'pointer', fontWeight: '700' }}
                >
@@ -666,7 +803,7 @@ export default function Profile() {
             <div style={{ padding: '1.5rem', background: 'rgba(255, 74, 74, 0.03)', border: '1px solid rgba(255, 74, 74, 0.2)', borderRadius: '20px' }}>
               <p style={{ marginBottom: '0.6rem', fontSize: '0.9rem', color: '#ff4a4a', fontWeight: '800', letterSpacing: '0.05em' }}>DANGER ZONE</p>
               {!deleteConfirm ? (
-                <button 
+                <button
                   onClick={() => setDeleteConfirm(true)}
                   style={{ width: '100%', padding: '0.9rem', background: 'transparent', border: '1px solid #ff4a4a', borderRadius: '12px', color: '#ff4a4a', cursor: 'pointer', fontWeight: '700' }}
                 >
@@ -676,13 +813,13 @@ export default function Profile() {
                 <div>
                   <p style={{ fontSize: '0.85rem', marginBottom: '1rem', color: 'var(--text-muted)' }}>Are you completely sure? This action is permanent and will wipe all your accumulated XP.</p>
                   <div style={{ display: 'flex', gap: '0.6rem' }}>
-                    <button 
+                    <button
                       onClick={handleDeleteAccount}
                       style={{ flex: 1, padding: '0.9rem', background: '#ff4a4a', border: 'none', borderRadius: '12px', color: 'white', cursor: 'pointer', fontWeight: '800' }}
                     >
                       Yes, Delete
                     </button>
-                    <button 
+                    <button
                       onClick={() => setDeleteConfirm(false)}
                       style={{ flex: 1, padding: '0.9rem', background: 'var(--card-bg)', border: '1px solid var(--surface-border)', borderRadius: '12px', color: 'var(--text-main)', cursor: 'pointer', fontWeight: '800' }}
                     >
@@ -693,9 +830,9 @@ export default function Profile() {
               )}
               {deleteStatus && <p style={{ marginTop: '0.6rem', fontSize: '0.8rem', color: '#ff4a4a', fontWeight: '700' }}>{deleteStatus}</p>}
             </div>
-            
-            <button 
-              onClick={handleLogout} 
+
+            <button
+              onClick={handleLogout}
               style={{ width: '100%', padding: '1rem', background: 'rgba(255, 74, 74, 0.08)', border: '1px solid rgba(255, 74, 74, 0.3)', borderRadius: '16px', color: '#ff4a4a', cursor: 'pointer', fontWeight: '800', marginTop: '0.5rem' }}
             >
               Log Out

@@ -5,6 +5,7 @@ import BottomNav from './components/BottomNav';
 import TopNav from './components/TopNav';
 import { AuthProvider } from '../context/AuthContext';
 import { ThemeProvider } from '../context/ThemeContext';
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata = {
   title: 'MathAround',

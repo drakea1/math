@@ -9,7 +9,8 @@ import { Analytics } from '@vercel/analytics/next';
 
 export const metadata = {
   title: 'MathAround',
-  description: 'Come MathAround',
+  description:
+    'Come MathAround — interactive math practice with adaptive levels, instant feedback, and step-by-step mastery from Pre-Algebra to Calculus.',
   icons: {
     icon: '/logo.png',
     shortcut: '/logo.png',
@@ -17,7 +18,8 @@ export const metadata = {
   },
   openGraph: {
     title: 'MathAround',
-    description: 'Come MathAround',
+    description:
+      'Come MathAround — interactive math practice with adaptive levels, instant feedback, and step-by-step mastery from Pre-Algebra to Calculus.',
     url: 'https://www.matharoundapp.com',
     siteName: 'MathAround',
     images: [
@@ -33,7 +35,8 @@ export const metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'MathAround',
-    description: 'Come MathAround',
+    description:
+      'Come MathAround — interactive math practice with adaptive levels, instant feedback, and step-by-step mastery from Pre-Algebra to Calculus.',
     images: ['https://www.matharoundapp.com/logo.png'],
   },
 };
